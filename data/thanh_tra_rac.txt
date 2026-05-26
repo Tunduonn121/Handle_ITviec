@@ -1,0 +1,120 @@
+=== DANH SÁCH CÁC TỪ KHÓA BỊ CHÉM BỎ ===
+Bị chém 527 lần: Debugging
+Bị chém 319 lần: Development Environment
+Bị chém 296 lần: Programming Principles
+Bị chém 276 lần: Application Development
+Bị chém 216 lần: Web Development
+Bị chém 154 lần: Maintainability
+Bị chém 152 lần: Software Development
+Bị chém 146 lần: Event-Driven Programming
+Bị chém 141 lần: Program Development
+Bị chém 136 lần: Integrated Development Environments
+Bị chém 131 lần: Mobile Development
+Bị chém 117 lần: Back-End Web Development
+Bị chém 102 lần: Full-Stack Web Development
+Bị chém 89 lần: Network Troubleshooting
+Bị chém 87 lần: Web Design and Development
+Bị chém 71 lần: Software Engineering
+Bị chém 70 lần: System Programming
+Bị chém 64 lần: Video Game Development
+Bị chém 64 lần: Computer Science
+Bị chém 63 lần: Theoretical Computer Science
+Bị chém 58 lần: Technical Communication
+Bị chém 58 lần: Microsoft Visual Studio
+Bị chém 57 lần: Development Testing
+Bị chém 54 lần: Cloud Development
+Bị chém 52 lần: Software Development Life Cycle
+Bị chém 44 lần: Database Development
+Bị chém 44 lần: Test Script Development
+Bị chém 42 lần: Problem Solving
+Bị chém 37 lần: Software Development Methodologies
+Bị chém 35 lần: Apache Maven
+Bị chém 35 lần: No-Code Development
+Bị chém 34 lần: Cross Platform Development
+Bị chém 29 lần: Communication
+Bị chém 27 lần: Design Strategies
+Bị chém 27 lần: Quality Assurance
+Bị chém 27 lần: Design Elements And Principles
+Bị chém 26 lần: Project Management
+Bị chém 24 lần: Software Quality Assurance
+Bị chém 20 lần: Telecommunications
+Bị chém 20 lần: Process Optimization
+Bị chém 19 lần: Hardware Troubleshooting
+Bị chém 19 lần: Testability
+Bị chém 18 lần: Eclipse (Software)
+Bị chém 17 lần: Critical Thinking
+Bị chém 17 lần: Jira (Software)
+Bị chém 16 lần: IntelliJ IDEA
+Bị chém 16 lần: Professional Development
+Bị chém 15 lần: Product Development
+Bị chém 15 lần: Stakeholder Communications
+Bị chém 15 lần: Persona Development
+Bị chém 14 lần: Project Management Software
+Bị chém 13 lần: Communication Strategies
+Bị chém 13 lần: Communication Systems
+Bị chém 12 lần: Kanban Principles
+Bị chém 12 lần: Salesforce Development
+Bị chém 11 lần: Leadership
+Bị chém 11 lần: Strategic Leadership
+Bị chém 11 lần: Advanced Analytics
+Bị chém 11 lần: Business Communication
+Bị chém 11 lần: Sustainable Development
+Bị chém 11 lần: Systems Development
+Bị chém 10 lần: Interpersonal Communications
+Bị chém 10 lần: Systems Development Life Cycle
+Bị chém 9 lần: Personal Development
+Bị chém 9 lần: Advanced Mathematics
+Bị chém 9 lần: Complex Problem Solving
+Bị chém 9 lần: Exploit development
+Bị chém 8 lần: Search Engine Optimization
+Bị chém 8 lần: Media and Communications
+Bị chém 8 lần: Business Leadership
+Bị chém 6 lần: Webpack
+Bị chém 6 lần: Gradle
+Bị chém 6 lần: New Product Development
+Bị chém 5 lần: Statistical Programming
+Bị chém 5 lần: Child Development
+Bị chém 5 lần: Leadership and Management
+Bị chém 5 lần: Advanced Encryption Standard (AES)
+Bị chém 4 lần: Data-oriented programming
+Bị chém 4 lần: Strategic Communication
+Bị chém 4 lần: Patient Communication
+Bị chém 4 lần: Content Development and Management
+Bị chém 4 lần: Project Management Life Cycle
+Bị chém 4 lần: Leadership Development
+Bị chém 4 lần: New Business Development
+Bị chém 4 lần: Team Leadership
+Bị chém 4 lần: Reliability
+Bị chém 3 lần: Teamwork
+Bị chém 3 lần: Persuasive Communication
+Bị chém 3 lần: Traffic Flow Optimization
+Bị chém 3 lần: Process Improvement and Optimization
+Bị chém 3 lần: Customer Communications Management
+Bị chém 3 lần: Non-Verbal Communication
+Bị chém 3 lần: Policy Development
+Bị chém 2 lần: Organizational Leadership
+Bị chém 2 lần: Corporate Communications
+Bị chém 2 lần: Internal Communications
+Bị chém 2 lần: Critical Thinking and Problem Solving
+Bị chém 2 lần: Process Driven Development
+Bị chém 2 lần: Proposal Development
+Bị chém 2 lần: ABAP RESTful Programming Model (RAP)
+Bị chém 2 lần: Process Development
+Bị chém 2 lần: Human Development
+Bị chém 2 lần: Marketing Communications
+Bị chém 1 lần: Healthcare Project Management
+Bị chém 1 lần: Community Development
+Bị chém 1 lần: Initiative and Leadership
+Bị chém 1 lần: Parent Communication
+Bị chém 1 lần: Childhood Education and Development
+Bị chém 1 lần: Business Development
+Bị chém 1 lần: Project Management Office (PMO)
+Bị chém 1 lần: Communication Planning
+Bị chém 1 lần: Cross-Functional Team Leadership
+Bị chém 1 lần: Integrated Marketing Communications
+Bị chém 1 lần: Milestones (Project Management)
+Bị chém 1 lần: Quality Assurance and Control
+Bị chém 1 lần: Management Training And Development
+Bị chém 1 lần: Developmental Disabilities
+Bị chém 1 lần: Thought Leadership
+Bị chém 1 lần: Leadership Studies
