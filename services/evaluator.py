@@ -1,109 +1,83 @@
 import json
-import re
 from typing import List, Dict, Set, Any
+from services.aliases import clean_and_normalize
 
 class RecommendationEvaluator:
     def __init__(self):
-        # Từ điển Alias đồng bộ để nhận diện kỹ năng chính xác
-        self.alias_map = {
-        "sql server": "microsoft sql servers", "postgres": "postgresql", "mongo": "mongodb",
-        "rdbms": "relational database", "nosql": "nosql databases",
-        "restful api": "rest api", "graphql api": "graphql", "grpc": "g-rpc",
-        "microservice": "microservices", "oop concepts": "oop", "object oriented programming": "oop",
-        "express": "expressjs", "react": "reactjs", "react.js": "reactjs", "vue": "vuejs",
-        "vue.js": "vuejs", "node": "nodejs", "node.js": "nodejs", "next": "nextjs",
-        "nuxt": "nuxtjs", "angular.js": "angular",
-        ".net 8": ".net", ".net 7": ".net", ".net 6": ".net", ".net 5": ".net",
-        ".net core": ".net", "asp.net core": "asp.net", "c sharp": "c#",
-        "k8s": "kubernetes", "aws": "amazon web services", "gcp": "google cloud", 
-        "google cloud platform": "google cloud", "azure": "microsoft azure", "ci/cd": "continuous integration",
-        "genai": "generative ai", "ml": "machine learning", "dl": "deep learning",
-        "nlp": "natural language processing", "cv": "computer vision",
-        "golang": "go", "cpp": "c++", "js": "javascript", "ts": "typescript"
-    }
+        pass
 
-    def _normalize_skill(self, skill: str) -> str:
-        s = skill.lower().strip().replace("/", " ").replace("-", " ")
-        return self.alias_map.get(s, s)
+    def _is_skill_matched(self, required_skill: str, course_skill: str) -> bool:
+        """
+        Hàm so khớp an toàn: Xử lý triệt để lỗi chuẩn hóa kép.
+        """
+        req_clean = clean_and_normalize(required_skill)
+        crs_clean = clean_and_normalize(course_skill)
+        
+        if req_clean == crs_clean: return True
+        
+        # Bọc thép đặc trị cho các môn dễ dính lỗi chuỗi con
+        if "c#" in req_clean and "c#" in crs_clean: return True
+        if ".net" in req_clean and ".net" in crs_clean: return True
+        
+        # So khớp tập hợp từ để bắt các biến thể (VD: "rest api" và "restful api")
+        words1, words2 = set(req_clean.split()), set(crs_clean.split())
+        return words1.issubset(words2) or words2.issubset(words1)
 
     def is_course_relevant(self, course: Dict[str, Any], gap_dict: Dict[str, List[int]]) -> bool:
-        """ Kiểm tra một khóa học thực tế từ DB có thực sự xử lý được Gap không """
-        if not isinstance(course, dict):
-            return False
+        if not isinstance(course, dict): return False
             
-        c_skills = {self._normalize_skill(s) for s in course.get("target_skills", [])}
-        gap_skills = {self._normalize_skill(s) for s in gap_dict.keys()}
-        
-        # 1. Kiểm tra giao thoa kỹ năng
-        matching_skills = c_skills.intersection(gap_skills)
-        if not matching_skills:
-            return False
+        c_skills = course.get("target_skills", [])
+        c_lvl = int(course.get("level", 1)) if str(course.get("level", 1)).isdigit() else 1
             
-        # 2. Kiểm tra tính phù hợp về Level (Sư phạm)
-        try:
-            c_lvl = int(course.get("level", 1))
-        except:
-            c_lvl = 1
-            
-        for skill in matching_skills:
-            orig_key = next((k for k in gap_dict.keys() if self._normalize_skill(k) == skill), None)
-            if orig_key:
-                missing_levels = gap_dict[orig_key]
-                # Khóa học hợp lệ nếu thuộc mốc level thiếu hoặc bổ trợ nền tảng dưới mốc đó
-                if c_lvl in missing_levels or c_lvl <= max(missing_levels):
-                    return True
+        for req_skill, missing_levels in gap_dict.items():
+            for c_skill in c_skills:
+                if self._is_skill_matched(req_skill, c_skill):
+                    # Nếu kỹ năng khớp, kiểm tra xem khóa học có bao phủ level đang hổng không
+                    if c_lvl in missing_levels or c_lvl <= max(missing_levels):
+                        return True
         return False
 
     def calculate_precision_at_k(self, recommended_courses: List[Dict], gap_dict: Dict[str, List[int]], k: int) -> float:
         top_k_rec = recommended_courses[:k]
-        if not top_k_rec:
-            return 0.0
+        if not top_k_rec: return 0.0
         relevant_count = sum(1 for c in top_k_rec if self.is_course_relevant(c, gap_dict))
         return relevant_count / len(top_k_rec)
 
-    def calculate_recall_at_k(self, recommended_courses: List[Dict], all_candidate_pool: List[Dict], gap_dict: Dict[str, List[int]], k: int) -> float:
-        top_k_rec = recommended_courses[:k]
-        total_relevant_in_db = sum(1 for c in all_candidate_pool if self.is_course_relevant(c, gap_dict))
-        if total_relevant_in_db == 0:
-            return 1.0
-        relevant_in_top_k = sum(1 for c in top_k_rec if self.is_course_relevant(c, gap_dict))
-        return relevant_in_top_k / total_relevant_in_db
-
     def calculate_skill_coverage(self, recommended_courses: List[Dict], gap_dict: Dict[str, List[int]]) -> float:
-        if not gap_dict:
-            return 1.0
-        gap_skills = {self._normalize_skill(s) for s in gap_dict.keys()}
-        covered_skills: Set[str] = set()
+        if not gap_dict: return 1.0
+        
+        # Khởi tạo tập hợp chứa các kỹ năng yêu cầu ĐÃ ĐƯỢC LẤP
+        skills_covered: Set[str] = set()
         
         for course in recommended_courses:
             if isinstance(course, dict):
-                c_skills = {self._normalize_skill(s) for s in course.get("target_skills", [])}
-                matches = c_skills.intersection(gap_skills)
-                covered_skills.update(matches)
+                c_skills = course.get("target_skills", [])
                 
-        return len(covered_skills) / len(gap_skills)
+                # Đối chiếu từng kỹ năng của khóa học với đống Lỗ hổng
+                for req_skill in gap_dict.keys():
+                    if req_skill in skills_covered: continue # Môn này đã được lấp rồi thì bỏ qua
+                    
+                    for c_skill in c_skills:
+                        if self._is_skill_matched(req_skill, c_skill):
+                            skills_covered.add(req_skill)
+                            break
+                
+        # Tỷ lệ lấp đầy = Số môn đã lấp / Tổng số môn bị thiếu
+        return len(skills_covered) / len(gap_dict.keys())
 
-# =====================================================================
-# HÀM NHÚNG TRỰC TIẾP VÀO LUỒNG CHẠY WEB (LIVE TELEMETRY LOGGER)
-# =====================================================================
-def log_live_evaluation_metrics(task_id: str, recommended_list: List[Dict], candidate_pool: List[Dict], gap_dict: Dict[str, List[int]]):
-    """ Hàm này sẽ được gọi trong main.py để in số liệu thực tế ra Terminal """
+def log_live_evaluation_metrics(task_id: str, recommended_list: List[Dict], combo_list: List[Dict], candidate_pool: List[Dict], gap_dict: Dict[str, List[int]]):
     evaluator = RecommendationEvaluator()
-    
     print("\n" + "="*60)
-    print(f"📊 [LIVE TELEMETRY] ĐÁNH GIÁ CHẤT LƯỢNG AI - TASK {task_id}")
+    print(f"📊 [LIVE TELEMETRY] ĐÁNH GIÁ CHẤT LƯỢNG LỘ TRÌNH HỌC - TASK {task_id}")
     print("="*60)
     
-    # Tính toán các chỉ số dựa trên Lộ trình Regular (danh sách tuyến tính)
     p_at_3 = evaluator.calculate_precision_at_k(recommended_list, gap_dict, k=3)
     p_at_5 = evaluator.calculate_precision_at_k(recommended_list, gap_dict, k=5)
-    r_at_3 = evaluator.calculate_recall_at_k(recommended_list, candidate_pool, gap_dict, k=3)
-    r_at_5 = evaluator.calculate_recall_at_k(recommended_list, candidate_pool, gap_dict, k=5)
-    coverage = evaluator.calculate_skill_coverage(recommended_list, gap_dict)
     
-    print(f"   🔹 Precision@3 (Độ chính xác Top 3) : {p_at_3 * 100:.1f}%")
-    print(f"   🔹 Precision@5 (Độ chính xác Top 5) : {p_at_5 * 100:.1f}%")
-    print(f"   🔹 Recall@3    (Độ phủ Ứng viên Top 3): {r_at_3 * 100:.1f}%")
-    print(f"   🔹 Recall@5    (Độ phủ Ứng viên Top 5): {r_at_5 * 100:.1f}%")
-    print(f"   🔹 Skill Coverage (Độ lấp đầy Gap)   : {coverage * 100:.1f}%")
+    full_path = combo_list + recommended_list 
+    coverage = evaluator.calculate_skill_coverage(full_path, gap_dict)
+    
+    print(f"   🔹 Precision@3 (Độ chính xác sư phạm Top 3) : {p_at_3 * 100:.1f}%")
+    print(f"   🔹 Precision@5 (Độ chính xác sư phạm Top 5) : {p_at_5 * 100:.1f}%")
+    print(f"   🔹 Skill Coverage (Tỷ lệ lấp đầy Lỗ hổng)   : {coverage * 100:.1f}%")
     print("="*60 + "\n")

@@ -3,14 +3,12 @@ import json
 from dotenv import load_dotenv
 from ollama import Client
 
-# Load biến môi trường từ file .env
 load_dotenv()
 api_key = os.getenv("OLLAMA_API_KEY")
 
 if not api_key:
     print("❌ LỖI: Sếp chưa điền OLLAMA_API_KEY vào file .env kìa!")
 
-# Khởi tạo Client
 client = Client(
     host='https://ollama.com',
     headers={'Authorization': f'Bearer {api_key}'}
@@ -20,18 +18,15 @@ def extract_skills_from_jd(jd_text):
     if not jd_text or jd_text == "N/A" or not api_key:
         return {}
 
-    # Pre-processing
     jd_text = jd_text.replace(" / ", "/").replace(" /", "/").replace("/ ", "/")
     jd_text = jd_text.replace(", or ", " or ").replace(", and/or ", " or ")
     jd_text_safe = jd_text.replace("{", "{{").replace("}", "}}")
     
-    # Mở rộng giới hạn cho CV/JD dài
     if len(jd_text) > 8000:
         print(f"⚠️ JD bị cắt: {len(jd_text)} → 8000 ký tự")
 
     prompt = f"""[SYSTEM ROLE]
-Bạn là Hệ thống Phân tích Kỹ năng (Skill Extraction Engine) lõi.
-Nhiệm vụ: Trích xuất Hard Tech Skills cốt lõi nhất từ JD.
+Bạn là Hệ thống Phân tích Kỹ năng (Skill Extraction Engine) lõi. Nhiệm vụ: Trích xuất Hard Tech Skills từ JD.
 
 Output BẮT BUỘC là MẢNG JSON:
 [
@@ -40,52 +35,26 @@ Output BẮT BUỘC là MẢNG JSON:
 
 [STRICT RULES]
 
-1. QUY TẮC CHUẨN HÓA TÊN (ALIAS NORMALIZATION):
-   Nếu gặp các từ sau, BẮT BUỘC chuyển về dạng Chuẩn (Bên phải dấu mũi tên):
-   - React.js, React -> ReactJS
-   - Vue.js, Vue -> VueJS
-   - Node.js, Node -> NodeJS
-   - C sharp -> C#
-   - C plus plus -> C++
-   - Python 3 -> Python
-   - Golang, Go programming -> Go
-   - AWS, Amazon Web Services -> AWS
-   - GCP, Google Cloud -> GCP
-   - ML, Machine Learning -> Machine Learning
-   - AI, Artificial Intelligence -> Artificial Intelligence
+1. QUY TẮC LẤY KỸ NĂNG (MỞ RỘNG TỐI ĐA):
+   - ĐƯỢC PHÉP LẤY TOÀN BỘ: Ngôn ngữ (C#, Java), Framework (Angular, ExpressJS), Database (Oracle, MongoDB), DevOps/Cloud (Docker, Kubernetes, CI/CD, OpenShift), Version Control (Git, GitHub, GitLab).
+   - ĐƯỢC PHÉP LẤY CÁC KHÁI NIỆM KỸ THUẬT: SSR, CSR, ETL, Data Lake, Microservices, Security, JWT, OAuth 2, Caching, Load balancing.
+   - CHỈ CẤM LẤY: Kỹ năng mềm (Teamwork, Communication) và từ chung chung (Backend, Frontend, Database, DevOps).
 
-2. ĐƯỢC PHÉP LẤY (CORE SKILLS TƯƠNG THÍCH VỚI 11 DOMAIN IT):
-   - Ngôn ngữ & Framework (Java, Python, C#, ReactJS, NodeJS...)
-   - Database & Cache (SQL, MySQL, MongoDB, Redis, PostgreSQL...)
-   - Cloud & DevOps (AWS, Azure, Docker, Kubernetes, CI/CD...)
-   - Mobile (iOS, Android, Flutter, React Native)
-   - Core CS (Data Structures, Algorithms, OOP, System Design, Microservices, REST API)
-   - Cybersecurity (Ethical Hacking, Penetration Testing, Cryptography, Network Security)
+2. LUẬT "HOẶC" / NHÓM OR (ANY MODE) - TỐI QUAN TRỌNG:
+   - Nếu giữa các kỹ năng có chữ "hoặc", "hay", "or", dấu "/", dấu phẩy mang tính liệt kê lựa chọn.
+   - LỆNH BẮT BUỘC: Gộp chúng lại thành 1 chuỗi ngăn cách bằng dấu "|", set "match_mode": "ANY".
+   - VÍ DỤ 1: "C#.NET Core hoặc Java" -> "C#.NET Core|Java"
+   - VÍ DỤ 2: "GitHub/GitLab" -> "GitHub|GitLab"
 
-3. BLACKLIST (CẤM LẤY - VI PHẠM SẼ BỊ HỦY BỎ):
-   - Kỹ năng mềm (Communication, Teamwork, English)
-   - Văn hóa quản lý dự án (Agile, Scrum, Jira, Kanban)
-   - Chức danh/Môi trường (DevOps, Fintech, Proptech, Backend, Frontend) -> Chỉ lấy ngôn ngữ, không lấy chữ Backend/Frontend.
-   - Tool Thô (GitHub Actions, Jenkins, Terraform, Ansible, Postman, npm) -> Bỏ hẳn.
+3. LUẬT TRONG NGOẶC KÉP (PARENTHESES RULE):
+   - Nếu JD ghi Khái niệm chung đi kèm ngoặc liệt kê Tool. Ví dụ: "BI Tools (Power BI, Tableau, Google Data Studio)" hoặc "AI tools (Copilot, ChatGPT, AutoML)".
+   - LỆNH BẮT BUỘC: Lấy các công cụ bên TRONG ngoặc gộp thành nhóm ANY. BỎ QUA từ khóa chung chung bên ngoài.
+   - OUTPUT ĐÚNG: "Power BI|Tableau|Google Data Studio" (ANY).
 
-4. LUẬT NHÓM OR (ANY MODE) - TỐI QUAN TRỌNG:
-   - CASE 1 (OR Cùng dòng): Nếu có "/", "or", "hoặc" (VD: "Java/Python/Go"). BẮT BUỘC gộp thành "Java|Python|Go", "match_mode": "ANY".
-   - CASE 2 (BULLET LỒNG - CHỌN 1 TRONG NHIỀU): Nếu JD ghi câu dẫn "Ít nhất một trong...", "Một trong các ngôn ngữ sau..." kèm theo các bullet bên dưới.
-     -> LỆNH TUYỆT ĐỐI: Phải gộp TOÀN BỘ các gạch đầu dòng đó thành MỘT CHUỖI DUY NHẤT, nối với nhau bằng dấu "|", KHÔNG ĐƯỢC tách thành các JSON object riêng.
-     -> VÍ DỤ: 
-        Ít nhất 1 trong các nhóm:
-        * Java (Spring, Hibernate)
-        * Node.js / Express
-     -> OUTPUT ĐÚNG 100%: 
-        {{"Java (Spring, Hibernate)|NodeJS|Express": {{"level": 3, "match_mode": "ANY"}}}}
-        
-5. QUYỀN PHỦ QUYẾT LEVEL 1 (ABSOLUTE OVERRIDE):
-   - Nếu kỹ năng nằm dưới tiêu đề "Ưu tiên", "Nice to have", "Preferred" HOẶC có từ "là lợi thế", "is a plus". BẮT BUỘC Ép về Level 1.
-
-6. ĐỊNH LƯỢNG LEVEL MẶC ĐỊNH:
-   - [3]: "Thành thạo", "Strong proficiency", "Master", hoặc >= 3 năm.
-   - [2]: "Có kinh nghiệm", "Experience with", hoặc 1-2 năm. (Đây là mức mặc định).
-   - [1]: "Biết", "Familiarity", "Cơ bản".
+4. ĐỊNH LƯỢNG LEVEL (BÁM SÁT TỪ NGỮ):
+   - [3] (Master): "Thành thạo", "Chuyên gia", "Nắm vững", hoặc >= 3 năm.
+   - [2] (Standard): "Có kinh nghiệm", "Hiểu biết", "Sử dụng tốt", "Làm việc với", hoặc 1-2 năm. (MẶC ĐỊNH)
+   - [1] (Basic): "Biết", "Biết cách", "Hiểu về", "Ưu tiên", "Lợi thế", "Familiarity".
 
 [INPUT JD CẦN XỬ LÝ]
 ---
@@ -106,7 +75,6 @@ Output BẮT BUỘC là MẢNG JSON:
         if start_idx != -1 and end_idx != -1:
             parsed_list = json.loads(result_text[start_idx:end_idx])
             return {item["skill_name"]: {"level": item["level"], "match_mode": item["match_mode"]} for item in parsed_list}
-            
         return {}
     except Exception as e:
         print(f"\n❌ Lỗi bóc tách JD: {e}")
@@ -118,13 +86,9 @@ def extract_skills_from_cv(cv_text):
 
     cv_text = cv_text.replace(" / ", "/").replace(" /", "/").replace("/ ", "/")
     cv_text_safe = cv_text.replace("{", "{{").replace("}", "}}")
-    
-    if len(cv_text) > 8000:
-        print(f"⚠️ CV bị cắt: {len(cv_text)} → 8000 ký tự")
 
     prompt = f"""[SYSTEM ROLE]
-Bạn là Hệ thống trích xuất kỹ năng từ CV.
-Nhiệm vụ: Tách ra các Hard Tech Skills từ CV kèm Level dự đoán.
+Bạn là Hệ thống trích xuất kỹ năng từ CV. Nhiệm vụ: Tách ra TOÀN BỘ Hard Tech Skills từ CV kèm Level.
 
 Output BẮT BUỘC là MẢNG JSON:
 [
@@ -132,13 +96,12 @@ Output BẮT BUỘC là MẢNG JSON:
 ]
 
 [RULES]
-1. CV CHỈ LẤY EXACT (Không gộp OR).
-2. Áp dụng quy tắc CHUẨN HÓA TÊN (Ví dụ: React.js -> ReactJS, Node.js -> NodeJS, Golang -> Go).
-3. KHÔNG lấy Tool thô (Jenkins, Docker Hub, npm). KHÔNG lấy Soft Skills. ĐƯỢC PHÉP lấy Core CS (OOP, System Design) và CyberSec.
-4. ĐỊNH LƯỢNG LEVEL:
-   - [3]: "Thành thạo", "Master", hoặc ghi chú >= 3 năm.
-   - [2]: "Có kinh nghiệm", "Familiar", hoặc 1-2 năm.
-   - [1]: Dự án môn học, học qua chứng chỉ, nhắc lướt qua.
+1. LẤY SẠCH, KHÔNG BỎ SÓT: Lấy toàn bộ ngôn ngữ, Framework, Database, Khái niệm (RESTful API, SSR...), Tool (Docker, Gitlab, MySQL...). KHÔNG LẤY soft skills.
+2. TUYỆT ĐỐI KHÔNG GỘP: Trích xuất chính xác từng công nghệ riêng biệt (EXACT).
+3. ĐỊNH LƯỢNG LEVEL:
+   - [3]: "Thành thạo", "Chuyên gia", "> 3 năm".
+   - [2]: "Có kinh nghiệm", "Từng thiết kế", "Sử dụng chính", "1-2 năm".
+   - [1]: "Biết", "Chứng chỉ cơ bản", "Thường xuyên dùng" (nhưng không nói rõ mức độ).
 
 [INPUT CV CẦN XỬ LÝ]
 ---
@@ -167,7 +130,7 @@ Output BẮT BUỘC là MẢNG JSON:
         return {}
     except Exception as e:
         print(f"\n❌ Lỗi bóc tách CV: {e}")
-        return {}
+        return {}   
 
 if __name__ == "__main__":
     test_jd = """

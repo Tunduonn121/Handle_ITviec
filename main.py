@@ -11,6 +11,10 @@ from services.tree_searcher import dfs_tree_search
 from services.course_ranker import rank_courses_with_llm
 from services.skill_extractor import extract_skills_from_jd, extract_skills_from_cv
 from services.skill_gap_calculator import compute_skill_gap
+# THÊM DÒNG NÀY ĐỂ IMPORT HÀM CHUẨN HÓA
+from services.aliases import clean_and_normalize
+
+
 
 # ==========================================
 # 1. KHỞI TẠO APP & DỮ LIỆU TOÀN CỤC (RAM CACHE)
@@ -30,25 +34,8 @@ app.add_middleware(
 )
 
 GLOBAL_COURSE_TREE = {}
-# DATABASE TẠM THỜI LƯU TRẠNG THÁI CỦA CÁC TASK CHẠY NGẦM
 tasks_db: Dict[str, dict] = {}
-DB_SKILL_ALIASES = {
-    # Nhóm .NET
-    "ASP.NET Core": ".NET", 
-    ".NET 8": ".NET",
-    ".NET Framework": ".NET",
-    # Nhóm Entity Framework (Sửa lỗi lặp khóa học)
-    "Object-Relational Mapping": "Entity Framework",
-    "ORM": "Entity Framework",
-    # Nhóm API (Sửa lỗi mất tích khóa học)
-    "RESTful API": "REST API",
-    "Web API": "REST API",
-    "API Design": "REST API",
-    # Frontend/Backend chung
-    "Node.js": "NodeJS", 
-    "React.js": "React", 
-    "Vue.js": "Vue"
-}
+
 @app.on_event("startup")
 async def startup_event():
     global GLOBAL_COURSE_TREE
@@ -144,7 +131,8 @@ def process_llm_logic(task_id: str, cv_text: str, jd_text: str, verified_skills:
             missing_lvls = gap_info["missing_levels"]
             if gap_info["match_mode"] == "EXACT":
                 skill_name = gap_info.get("user_skill_name") or skill_key
-                mapped_skill = DB_SKILL_ALIASES.get(skill_name, skill_name)
+                # SỬ DỤNG HÀM TỪ ALIASES.PY THAY VÌ DICT CỤC BỘ
+                mapped_skill = clean_and_normalize(skill_name)
                 search_gap_dict[mapped_skill] = missing_lvls
             else:
                 best_match = gap_info.get("user_best_match")
@@ -152,12 +140,14 @@ def process_llm_logic(task_id: str, cv_text: str, jd_text: str, verified_skills:
                     match = re.match(r'([^\(]+)(?:\((.*)\))?', best_match)
                     if match:
                         main_skill = match.group(1).strip()
-                        mapped_main = DB_SKILL_ALIASES.get(main_skill, main_skill)
+                        # SỬ DỤNG HÀM TỪ ALIASES.PY
+                        mapped_main = clean_and_normalize(main_skill)
                         search_gap_dict[mapped_main] = missing_lvls
                         if match.group(2):
                             sub_skills = [s.strip() for s in match.group(2).split(',')]
                             for sub in sub_skills:
-                                mapped_sub = DB_SKILL_ALIASES.get(sub, sub)
+                                # SỬ DỤNG HÀM TỪ ALIASES.PY
+                                mapped_sub = clean_and_normalize(sub)
                                 search_gap_dict[mapped_sub] = missing_lvls
 
         # --- BƯỚC 3: TÌM KIẾM CÂY (DFS TREE SEARCH) ---
@@ -192,8 +182,14 @@ def process_llm_logic(task_id: str, cv_text: str, jd_text: str, verified_skills:
         # 🔥 CHÈN ĐOẠN ĐÁNH GIÁ THỰC TẾ (LIVE TELEMETRY) VÀO ĐÂY 🔥
         try:
             from services.evaluator import log_live_evaluation_metrics
-            # Mang toàn bộ kết quả thật, rổ ứng viên thật từ SQL, và Gap thật ra đo đạc
-            log_live_evaluation_metrics(task_id, regular_courses, candidate_courses, search_gap_dict)
+            # Mang toàn bộ kết quả thật (gồm khóa Thường + khóa Combo), rổ ứng viên thật, và Gap thật ra đo đạc
+            log_live_evaluation_metrics(
+                task_id=task_id, 
+                recommended_list=regular_courses, 
+                combo_list=combo_courses, # <--- BIẾN MỚI ĐƯỢC TRUYỀN VÀO Ở ĐÂY
+                candidate_pool=candidate_courses, 
+                gap_dict=search_gap_dict
+            )
         except Exception as eval_e:
             print(f"⚠️ Không thể in Metrics đánh giá trực tuyến: {eval_e}")
         # 🔥 ======================================================= 🔥

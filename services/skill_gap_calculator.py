@@ -1,103 +1,40 @@
 import json
 import re
 from typing import Dict, List, Tuple
-
-# ===== BỘ TỪ ĐIỂN ALIAS BỌC THÉP (CẬP NHẬT THEO CÂY V2.0) =====
-SKILL_ALIASES = {
-    # Backend & Ngôn ngữ
-    "REST API": ["RESTful API", "REST", "Web API"],
-    "RESTful API": ["REST API", "REST", "Web API"],
-    "GraphQL": ["GraphQL API"],
-    "gRPC": ["g-RPC", "GRPC"],
-    ".NET": [".NET 8", ".NET 5", ".NET 6", ".NET 7", ".NET Core", "C# / .NET"],
-    ".NET 8": [".NET", ".NET Core"],
-    "Java": ["Java 8", "Java 11", "Java 17", "Java 21", "Core Java", "J2EE"],
-    "Node.js": ["NodeJS", "Node JS"],
-    "NodeJS": ["Node.js", "Node JS"],
-    "Go": ["Golang", "Go programming"],
-    "C++": ["C plus plus", "CPP"],
-    "C#": ["C sharp"],
-    
-    # Frameworks (Các cặp hay dính nhau)
-    "Spring Data JPA": ["JPA", "Hibernate"],
-    "JPA": ["Spring Data JPA", "Hibernate"],
-    "Hibernate": ["JPA", "Spring Data JPA"],
-    "Spring Boot": ["Spring", "Spring MVC"],
-    "Entity Framework": ["ORM", "Object-Relational Mapping", "EF Core"],
-    "Entity Framework Core": ["Entity Framework"],
-    
-    # Frontend
-    "ReactJS": ["React", "React.js"],
-    "VueJS": ["Vue", "Vue.js"],
-    "Angular": ["AngularJS", "Angular.js"],
-    "JavaScript": ["JS", "ECMAScript"],
-    "TypeScript": ["TS"],
-    
-    # DevOps & Cloud
-    "Kubernetes": ["K8s", "K8S"],
-    "K8s": ["Kubernetes"],
-    "AWS": ["Amazon Web Services"],
-    "GCP": ["Google Cloud", "Google Cloud Platform"],
-    "Azure": ["Microsoft Azure"],
-    "CI/CD": ["Continuous Integration", "Continuous Deployment"],
-    
-    # Database
-    "SQL": ["Relational DB"],
-    "PostgreSQL": ["Postgres"],
-    "MongoDB": ["Mongo DB"],
-    
-    # Core CS & Security
-    "Machine Learning": ["ML"],
-    "Artificial Intelligence": ["AI"],
-    "Deep Learning": ["DL"],
-    "Natural Language Processing": ["NLP"],
-    "OOP": ["Object Oriented Programming", "Object-Oriented"],
-    "Data Structures": ["Data Structures & Algorithms", "DSA"],
-    "Algorithms": ["Data Structures & Algorithms", "DSA"],
-    "Penetration Testing": ["Pen Testing", "Ethical Hacking"],
-    "Information Security": ["InfoSec", "Cybersecurity", "Cyber Security"]
-}
+from services.aliases import GLOBAL_ALIAS_MAP, clean_and_normalize
 
 def get_skill_aliases(skill: str) -> List[str]:
-    # Chuẩn hóa chữ thường/hoa trước khi tra cứu
-    skill_clean = skill.strip()
-    # Tìm trực tiếp
-    if skill_clean in SKILL_ALIASES:
-        return SKILL_ALIASES[skill_clean]
-    # Tìm case-insensitive (chống viết hoa viết thường lộn xộn)
-    for k, v in SKILL_ALIASES.items():
-        if k.lower() == skill_clean.lower():
-            return v
-    return []
+    skill_clean = skill.strip().lower()
+    # Tìm tất cả các từ khóa gốc trỏ về cùng một giá trị đích
+    target_val = GLOBAL_ALIAS_MAP.get(skill_clean, skill_clean)
+    aliases = [k for k, v in GLOBAL_ALIAS_MAP.items() if v == target_val]
+    if target_val not in aliases:
+        aliases.append(target_val)
+    return aliases
 
 def find_matching_skill(skill_to_find: str, available_skills: Dict) -> Tuple:
-    """Hỗ trợ tra cứu mạnh mẽ, bọc thép lỗi case-sensitive"""
     skill_to_find = skill_to_find.strip()
     
     def get_level(value):
-        if isinstance(value, dict):
-            return value.get("level", 0)
+        if isinstance(value, dict): return value.get("level", 0)
         return value
 
-    # 1. Tra cứu chính xác
-    if skill_to_find in available_skills:
-        return skill_to_find, get_level(available_skills[skill_to_find])
-    
-    # 2. Tra cứu không phân biệt hoa thường
+    search_terms = [skill_to_find.lower()] + [a.lower() for a in get_skill_aliases(skill_to_find)]
+    best_match_name = None
+    best_match_level = 0
+
     for available_skill, info in available_skills.items():
-        if available_skill.lower() == skill_to_find.lower():
-            return available_skill, get_level(info)
-            
-    # 3. Tra cứu qua Alias
-    aliases = get_skill_aliases(skill_to_find)
-    for alias in aliases:
-        if alias in available_skills:
-            return alias, get_level(available_skills[alias])
-        # Tra cứu alias không phân biệt hoa thường
-        for available_skill, info in available_skills.items():
-            if available_skill.lower() == alias.lower():
-                return available_skill, get_level(info)
-                
+        available_skill_lower = available_skill.lower()
+        cv_lvl = get_level(info)
+        
+        for term in search_terms:
+            if term == available_skill_lower or term in available_skill_lower or available_skill_lower in term:
+                if cv_lvl > best_match_level:
+                    best_match_level = cv_lvl
+                    best_match_name = available_skill
+
+    if best_match_name:
+        return best_match_name, best_match_level
     return None, 0
 
 def parse_complex_candidate(candidate_str: str) -> List[str]:
@@ -116,8 +53,8 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
     gap = {}
     
     for skill_key, jd_info in jd_skills.items():
-        level_required = jd_info["level"]
-        match_mode = jd_info.get("match_mode", "EXACT")
+        level_required = jd_info.get("level", 1) if isinstance(jd_info, dict) else jd_info
+        match_mode = jd_info.get("match_mode", "EXACT") if isinstance(jd_info, dict) else "EXACT"
         
         if match_mode == "ANY":
             candidates = [s.strip() for s in skill_key.split("|")]
@@ -142,9 +79,8 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
                     else:
                         if found_level > 0:
                             branch_score += 0.5
-                        branch_missing.append((rs, found_level))
+                        branch_missing.append((rs, found_level, found_skill))
                         
-                # LUẬT TOÁN HỌC MỚI: Chọn đường phải học ít cấp độ nhất
                 if branch_score > best_branch_score:
                     best_branch_score = branch_score
                     best_branch = candidate
@@ -168,11 +104,11 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
                 total_missing_levels = []
                 missing_names = []
                 
-                for ms, curlvl in best_branch_missing:
-                    # 🚀 SỬA LỖI TÍNH GIỜ: Cộng bù số level thiếu vào danh sách
+                for ms, curlvl, fname in best_branch_missing:
                     missing_levels = list(range(curlvl + 1 if curlvl > 0 else 1, level_required + 1))
                     total_missing_levels.extend(missing_levels)
-                    missing_names.append(f"{ms} (Lvl {curlvl}->{level_required})" if curlvl>0 else f"{ms} (Lvl 1->{level_required})")
+                    display_name = fname if fname else ms
+                    missing_names.append(f"{display_name} (Lvl {curlvl}->{level_required})" if curlvl>0 else f"{display_name} (Lvl 1->{level_required})")
                 
                 if best_branch_score == 0:
                     rec_text = f"Học 1 trong [{', '.join(candidates)}] từ đầu." if not is_complex else f"Chưa biết gì. Gợi ý chọn nhánh '{best_branch}' và học từ đầu: " + ", ".join(missing_names)
@@ -184,7 +120,7 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
                     "candidates": candidates,
                     "user_best_match": best_branch,
                     "user_level": best_branch_score,
-                    "missing_levels": total_missing_levels, # 🚀 Khôi phục danh sách tính giờ
+                    "missing_levels": total_missing_levels,
                     "match_mode": final_match_mode,
                     "recommendation": rec_text
                 }
@@ -195,7 +131,8 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
             
             if user_level < level_required:
                 missing_levels = list(range(user_level + 1 if user_level > 0 else 1, level_required + 1))
-                rec_text = f"Nâng {found_skill} từ Level {user_level} lên {level_required}" if user_level > 0 else f"Học {skill_key} từ Level 1 đến {level_required}"
+                display_name = found_skill if found_skill else skill_key
+                rec_text = f"Nâng {display_name} từ Level {user_level} lên {level_required}" if user_level > 0 else f"Học {display_name} từ Level 1 đến {level_required}"
                 
                 gap[skill_key] = {
                     "level_required": level_required,
@@ -263,11 +200,12 @@ if __name__ == "__main__":
         "Entity Framework": 2,
         "LINQ to SQL": 1,
         "Flutter": 1,
-        "NodeJS": 1 # Thêm vào để test Alias Node.js vs NodeJS
+        "NodeJS": 1,
+        "Gitlab CI/CD": 3 # Đã thêm vào để test tính năng X-Quang
     }
     
     jd_skills = {
-        ".NET Core": {"level": 3, "match_mode": "EXACT"}, # Đổi để test Alias .NET Core -> C#
+        ".NET Core": {"level": 3, "match_mode": "EXACT"},
         "SQL Server": {"level": 3, "match_mode": "EXACT"},
         "Java (Spring Boot, Hibernate, Microservices)|Node.js (ExpressJS, NestJS)|Python (Django, FastAPI)": {"level": 3, "match_mode": "ANY"},
         "MySQL|PostgreSQL|Oracle|MongoDB|Redis": {"level": 2, "match_mode": "ANY"},
@@ -275,7 +213,8 @@ if __name__ == "__main__":
         "AWS|Azure|GCP": {"level": 1, "match_mode": "ANY"},
         "Kubernetes": {"level": 1, "match_mode": "EXACT"},
         "Docker": {"level": 1, "match_mode": "EXACT"},
-        "CI/CD": {"level": 1, "match_mode": "EXACT"}
+        "CI/CD": {"level": 1, "match_mode": "EXACT"}, 
+        "GitHub|GitLab": {"level": 2, "match_mode": "ANY"}
     }
     
     print("=" * 80)
