@@ -146,7 +146,18 @@ GLOBAL_ALIAS_MAP = {
     "ssr": "ssr",
     "csr": "csr",
     "bootstrap": "bootstrap",
-    "tailwindcss": "tailwindcss"
+    "tailwindcss": "tailwindcss",
+    # Container & Version Control & DevOps (Coursera emit rất nhiều)
+    "docker": "docker",
+    "containerization": "docker",
+    "git": "git",
+    "github": "git",
+    "gitlab": "git",
+    "version control": "git",
+    "devops": "devops",
+    "continuous integration": "ci/cd",
+    "continuous delivery": "ci/cd",
+    "continuous deployment": "ci/cd",
 }
 
 def clean_and_normalize(skill_name: str) -> str:

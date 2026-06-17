@@ -1,9 +1,40 @@
-import json
 import re
-
-# IMPORT TỪ FILE ALIASES ĐỂ DÙNG CHUNG MỘT NGUỒN CHÂN LÝ (SINGLE SOURCE OF TRUTH)
+import sys
+import argparse
 from services.aliases import GLOBAL_ALIAS_MAP
 
+# Sắp key theo độ dài giảm dần: key cụ thể (dài) được ưu tiên khớp trước
+ALIAS_KEYS_SORTED = sorted(GLOBAL_ALIAS_MAP.keys(), key=len, reverse=True)
+
+# Tên hiển thị chuẩn cho các giá trị canonical hay bị xấu khi .title()
+DISPLAY_OVERRIDES = {
+    "c#": "C#", ".net": ".NET", "nodejs": "Node.js", "reactjs": "ReactJS",
+    "vuejs": "Vue.js", "javascript": "JavaScript", "typescript": "TypeScript",
+    "jpa": "JPA", "sql": "SQL", "sql server": "SQL Server", "ci/cd": "CI/CD",
+    "aws": "AWS", "gcp": "GCP", "rest api": "REST API", "oop": "OOP",
+    "jwt": "JWT", "etl": "ETL", "nlp": "NLP", "go": "Go",
+}
+
+def to_display(canonical: str) -> str:
+    """Chuẩn hóa tên hiển thị, áp ĐỒNG NHẤT cho cả skill alias lẫn không-alias."""
+    c = canonical.lower().strip()
+    if c in DISPLAY_OVERRIDES:
+        return DISPLAY_OVERRIDES[c]
+    return canonical.title()
+
+def _word_boundary_hit(token: str, text: str) -> bool:
+    """Khớp token như một từ/cụm ĐỘC LẬP (không cắt giữa từ). An toàn cho c#, .net..."""
+    pat = r'(?<![a-z0-9])' + re.escape(token) + r'(?![a-z0-9])'
+    return re.search(pat, text) is not None
+
+def map_alias(s: str):
+    """Trả canonical nếu map được, ngược lại None. Bằng-nhau trước, key dài trước."""
+    if s in GLOBAL_ALIAS_MAP:
+        return GLOBAL_ALIAS_MAP[s]
+    for key in ALIAS_KEYS_SORTED:
+        if _word_boundary_hit(key, s):
+            return GLOBAL_ALIAS_MAP[key]
+    return None
 # ==========================================
 # CẤU HÌNH ĐƯỜNG DẪN
 # ==========================================
@@ -58,47 +89,39 @@ BLACKLIST_SUBSTRING = [
 ]
 
 def clean_skill_local(skill):
-    """Hàm dọn rác bọc thép (Xử lý theo thứ tự tuyệt đối)"""
+    """Dọn rác theo thứ tự an toàn: chuẩn hóa -> alias chính xác -> blacklist (word-boundary) -> alias fuzzy -> dọn ký tự."""
     s = skill.lower().strip()
-    
-    if not s or len(s) < 2: 
+    s = re.sub(r'\([^)]*\)', '', s).strip()   # bỏ đuôi mô tả: "Docker (Software)" -> "docker"
+    if not s or len(s) < 2:
+        return None
+    if not s or len(s) < 2:
         return None
 
-    # ==========================================
-    # BƯỚC 1: MAPPING BÌNH THƯỜNG (Sử dụng từ điển chung của toàn hệ thống)
-    # ==========================================
-    for key, val in GLOBAL_ALIAS_MAP.items():
-        pattern = r'\b' + re.escape(key) + r'\b'
-        if re.search(pattern, s):
-            return val
+    # BƯỚC 1: ALIAS KHỚP BẰNG-NHAU TOÀN CHUỖI (chắc chắn là core -> giữ ngay)
+    if s in GLOBAL_ALIAS_MAP:
+        return to_display(GLOBAL_ALIAS_MAP[s])
 
-    # ==========================================
-    # BƯỚC 2: BLACKLIST BẮT CHÍNH XÁC TỪ
-    # ==========================================
+    # BƯỚC 2: BLACKLIST EXACT (word-boundary - giữ nguyên ý định cũ)
     for bad in BLACKLIST_EXACT:
-        pattern = r'\b' + re.escape(bad) + r'\b'
-        if re.search(pattern, s):
+        if _word_boundary_hit(bad, s):
             return None
 
-    # ==========================================
-    # BƯỚC 3: BLACKLIST CHUỖI VÔ NGHĨA
-    # ==========================================
+    # BƯỚC 3: BLACKLIST CỤM RÁC -> ĐỔI SANG WORD-BOUNDARY (hết giết "Engineering","Architecture")
     for trash in BLACKLIST_SUBSTRING:
-        if trash in s:
+        if _word_boundary_hit(trash, s):
             return None
-            
-    # Đã XÓA đoạn chém oan các chữ chứa "programming" hay "development" ở đây.
 
-    # ==========================================
-    # BƯỚC 4: LÀM SẠCH KÝ TỰ 
-    # ==========================================
-    s = re.sub(r'[^a-zA-Z0-9\+\#\-\.\/]', ' ', s) 
-    s = ' '.join(s.split()) 
-    
-    if len(s) < 2: 
+    # BƯỚC 4: ALIAS FUZZY (key dài trước) cho các cụm ghép như "core java programming"
+    mapped = map_alias(s)
+    if mapped is not None:
+        return to_display(mapped)
+
+    # BƯỚC 5: LÀM SẠCH KÝ TỰ rồi trả về với casing chuẩn
+    s = re.sub(r'[^a-zA-Z0-9\+\#\-\.\/]', ' ', s)
+    s = ' '.join(s.split())
+    if len(s) < 2:
         return None
-        
-    return s.title()
+    return to_display(s)
 
 def run_test_cases():
     """Hàm test thử nghiệm các ca khó để Sếp kiểm chứng logic"""
@@ -117,7 +140,15 @@ def run_test_cases():
         "introduction to agile",           # Có 'introduction' & 'agile' -> BỊ CHÉM
         "vscode extensions",               # Có 'vscode' (Blacklist exact) -> BỊ CHÉM
         "docker & kubernetes!!!",          # Xóa ký tự lạ, giữ lại chữ
-        "  node.js  "                      # Cắt khoảng trắng thừa -> NodeJS
+        "  node.js  ",                     # Cắt khoảng trắng thừa -> NodeJS"microsoft sql server",   # PHẢI ra: SQL Server (cũ ra "sql")
+        "spring data jpa",                 # PHẢI ra: JPA       (cũ ra "Spring Boot")
+        "data engineering",                # PHẢI GIỮ           (cũ bị 'engineer' chém)
+        "software architecture",           # PHẢI GIỮ           (cũ bị 'architect' chém)
+        "core java programming",           # PHẢI ra: Java
+        "react.js",                        # PHẢI ra: ReactJS
+        "teamwork",                        # PHẢI bị chém (soft skill)   
+        "vscode extensions",               # PHẢI bị chém (IDE rác)
+        "  node.js  ", 
     ]
     
     for raw in test_cases:
@@ -164,12 +195,20 @@ def process_real_files():
 
 
 if __name__ == "__main__":
-    # 1. Chạy Demo để Sếp xem mắt trước
+    parser = argparse.ArgumentParser(description="Cleansing pipeline (offline).")
+    parser.add_argument("--yes", action="store_true", help="Chạy thẳng file thật, không hỏi.")
+    parser.add_argument("--test", action="store_true", help="Chỉ chạy test logic lọc.")
+    args = parser.parse_args()
+
     run_test_cases()
-    
-    # 2. Hỏi ý kiến Sếp xem có muốn quất luôn file thật không
-    user_choice = input("\n[?] Sếp đã ưng ý với kết quả Test chưa? Gõ 'y' để dọn rác file thật, 'n' để thoát: ")
-    if user_choice.lower() == 'y':
+    if args.test:
+        sys.exit(0)
+
+    if args.yes:
         process_real_files()
     else:
-        print("🛑 Đã hủy quá trình chạy file thật.")
+        choice = input("\n[?] Gõ 'y' để dọn file thật, Enter để thoát: ")
+        if choice.lower() == 'y':
+            process_real_files()
+        else:
+            print("🛑 Đã hủy.")
