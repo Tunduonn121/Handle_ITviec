@@ -36,9 +36,13 @@ Output BẮT BUỘC là MẢNG JSON:
 [STRICT RULES]
 
 1. QUY TẮC LẤY KỸ NĂNG (MỞ RỘNG TỐI ĐA):
-   - ĐƯỢC PHÉP LẤY TOÀN BỘ: Ngôn ngữ (C#, Java), Framework (Angular, ExpressJS), Database (Oracle, MongoDB), DevOps/Cloud (Docker, Kubernetes, CI/CD, OpenShift), Version Control (Git, GitHub, GitLab).
-   - ĐƯỢC PHÉP LẤY CÁC KHÁI NIỆM KỸ THUẬT: SSR, CSR, ETL, Data Lake, Microservices, Security, JWT, OAuth 2, Caching, Load balancing.
-   - CHỈ CẤM LẤY: Kỹ năng mềm (Teamwork, Communication) và từ chung chung (Backend, Frontend, Database, DevOps).
+   - ĐƯỢC PHÉP LẤY TOÀN BỘ: Ngôn ngữ (C#, Java), Framework (Angular, ExpressJS), Database (Oracle, MongoDB), DevOps/Cloud (Docker, Kubernetes, CI/CD), Version Control (Git).
+   - ĐƯỢC PHÉP LẤY CÁC KHÁI NIỆM KỸ THUẬT: SSR, CSR, ETL, Microservices, Security, JWT, Caching.
+   - 🚫 DANH SÁCH ĐEN (TUYỆT ĐỐI CẤM LẤY): 
+     + Kỹ năng mềm: Teamwork, Communication, Problem-solving, Time management, Logical thinking, Tư duy thiết kế.
+     + Ngoại ngữ: Tiếng Anh, English, Đọc hiểu tài liệu.
+     + Kiến thức ngành/Nghiệp vụ: Banking, Finance, E-commerce, Domain knowledge.
+     + Từ khóa quá chung chung: Backend, Frontend, Database, DevOps, IT.
 
 2. LUẬT "HOẶC" / NHÓM OR (ANY MODE) - TỐI QUAN TRỌNG:
    - Nếu giữa các kỹ năng có chữ "hoặc", "hay", "or", dấu "/", dấu phẩy mang tính liệt kê lựa chọn.
@@ -96,7 +100,16 @@ Output BẮT BUỘC là MẢNG JSON:
 ]
 
 [RULES]
-1. LẤY SẠCH, KHÔNG BỎ SÓT: Lấy toàn bộ ngôn ngữ, Framework, Database, Khái niệm (RESTful API, SSR...), Tool (Docker, Gitlab, MySQL...). KHÔNG LẤY soft skills.
+
+1. QUY TẮC LẤY KỸ NĂNG (MỞ RỘNG TỐI ĐA):
+   - ĐƯỢC PHÉP LẤY TOÀN BỘ: Ngôn ngữ (C#, Java), Framework (Angular, ExpressJS), Database (Oracle, MongoDB), DevOps/Cloud (Docker, Kubernetes, CI/CD), Version Control (Git).
+   - ĐƯỢC PHÉP LẤY CÁC KHÁI NIỆM KỸ THUẬT: SSR, CSR, ETL, Microservices, Security, JWT, Caching.
+   - 🚫 DANH SÁCH ĐEN (TUYỆT ĐỐI CẤM LẤY): 
+     + Kỹ năng mềm: Teamwork, Communication, Problem-solving, Time management, Logical thinking, Tư duy thiết kế.
+     + Ngoại ngữ: Tiếng Anh, English, Đọc hiểu tài liệu.
+     + Kiến thức ngành/Nghiệp vụ: Banking, Finance, E-commerce, Domain knowledge.
+     + Từ khóa quá chung chung: Backend, Frontend, Database, DevOps, IT.
+
 2. TUYỆT ĐỐI KHÔNG GỘP: Trích xuất chính xác từng công nghệ riêng biệt (EXACT).
 3. ĐỊNH LƯỢNG LEVEL:
    - [3]: "Thành thạo", "Chuyên gia", "> 3 năm".

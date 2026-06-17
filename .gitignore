@@ -1,3 +1,20 @@
+# Bỏ qua thư viện Frontend
+node_modules/
+dist/
+.eslintcache
+
+# Bỏ qua môi trường và thư viện Backend
+.venv/
+venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Bỏ qua file chứa API Key (TUYỆT ĐỐI KHÔNG PUSH)
 .env
+
+# Bỏ qua dữ liệu hệ thống/IDE
+.DS_Store
+.vscode/
+.idea/

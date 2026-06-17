@@ -1,81 +1,61 @@
 import json
 import re
 
+# IMPORT TỪ FILE ALIASES ĐỂ DÙNG CHUNG MỘT NGUỒN CHÂN LÝ (SINGLE SOURCE OF TRUTH)
+from services.aliases import GLOBAL_ALIAS_MAP
+
 # ==========================================
 # CẤU HÌNH ĐƯỜNG DẪN
 # ==========================================
 RAW_FILE = r"data\raw_courses_massive.json"
 CLEAN_FILE = r"data\clean_courses.json"
 
-# 1. Danh sách đen: Bắt đúng từ (Word Boundary) để không chém nhầm
+# 1. Danh sách đen (Exact Match): Bắt đúng từ (Word Boundary) để không chém nhầm
+# Bổ sung: Các phần mềm gõ code (IDE/Editor), Công cụ chat/văn phòng, và phương pháp quản lý chung
 BLACKLIST_EXACT = {
-    'vscode', 'visual studio', 'eclipse', 'intellij',
-    'maven', 'gradle', 'npm', 'yarn', 'webpack', 'jira', 'slack', 'trello', 'confluence',
-    'bash', 'powershell', 'agile', 'scrum', 'debugging'
+    # Nhóm IDE / Text Editors (Chỉ là công cụ gõ code, không phải kỹ năng lõi)
+    'vscode', 'visual studio', 'eclipse', 'intellij', 'pycharm', 'webstorm', 
+    'phpstorm', 'netbeans', 'atom', 'sublime text', 'notepad++', 'vim', 'emacs', 'xcode',
+    
+    # Nhóm Build tools & Package managers (Quá nhỏ để tính là một skill lớn)
+    'maven', 'gradle', 'npm', 'yarn', 'webpack', 'gulp', 'grunt', 'composer',
+    
+    # Nhóm Giao tiếp / Quản lý dự án / Chat văn phòng
+    'jira', 'slack', 'trello', 'confluence', 'asana', 'notion', 'monday', 'monday.com',
+    'microsoft teams', 'zoom', 'skype', 'discord', 'google meet',
+    
+    # Nhóm Thuật ngữ chung chung / Phương pháp luận
+    'bash', 'powershell', 'agile', 'scrum', 'kanban', 'waterfall', 'lean', 
+    'qa', 'qc', 'debugging', 'debug', 'testing', 'deploy'
 }
 
-# Danh sách đen: Bắt cụm từ (Substring) chứa các từ chung chung vô nghĩa
+# 2. Danh sách đen (Substring): Bắt cụm từ chứa các từ chung chung vô nghĩa
+# Bổ sung: Các câu từ Marketing của Udemy/Coursera, Soft-skills, và từ khóa định hướng
 BLACKLIST_SUBSTRING = [
+    # 🗑️ Rác Marketing giáo dục (Coursera / Udemy fluff)
+    'from scratch', 'zero to hero', 'for beginners', 'for dummies', 'masterclass', 
+    'bootcamp', 'crash course', 'step by step', 'complete guide', 'deep dive', 
+    'getting started', 'tutorial', 'hands on', 'hands-on', 'tips and tricks', 
+    'interview prep', 'exam prep', 'certification', 'course', 'module', 'learn',
+    
+    # 🗑️ Rác Soft-skills (Kỹ năng mềm)
+    'communication', 'leadership', 'teamwork', 'problem solving', 'critical thinking', 
+    'time management', 'presentation', 'writing', 'speaking', 'collaboration',
+    
+    # 🗑️ Rác Thuật ngữ học thuật / Đại cương
+    'introduction', 'basics', 'fundamentals', 'advanced', 'concepts', 'understanding', 
+    'overview', 'principles', 'best practices', 'how to', 'what is',
+    
+    # 🗑️ Rác Ngành nghề chung chung
+    'software engineering', 'software development', 'web development', 'app development', 
+    'computer science', 'programming languages', 'coding', 'developer', 'engineer', 
+    'architect', 'career', 'resume', 'portfolio',
+    
+    # 🗑️ Rác Kỹ thuật chung chung
     'linux command', 'command line', 'maintainability', 'testability', 'reliability', 
-    'design strategies', 'best practices', 'principles', 'software engineering', 
-    'computer science', 'communication', 'leadership', 'teamwork', 'problem solving', 
-    'critical thinking', 'project management', 'quality assurance', 'troubleshooting', 
-    'optimization', 'introduction', 'basics', 'fundamentals', 'advanced', 'concepts', 
-    'how to', 'course', 'module', 'learn'
+    'design strategies', 'project management', 'quality assurance', 'troubleshooting', 
+    'optimization', 'architecture patterns', 'features', 'update', 'new in'
 ]
-
-# 2. Từ điển map: Chuẩn hóa tên (Alias)
-MAPPING = {
-    # --- Backend & Ngôn ngữ ---
-    'java programming': 'Java', 'core java': 'Java', 'java se': 'Java', 'java ee': 'Java',
-    'python programming': 'Python', 'python 3': 'Python', 'interactive python': 'Python',
-    'c++ programming': 'C++', 'c plus plus': 'C++', 'modern c++': 'C++',
-    'c# programming': 'C#', 'c sharp': 'C#',
-    'node.js': 'NodeJS', 'nodejs': 'NodeJS', 'express.js': 'ExpressJS', 'express': 'ExpressJS',
-    'golang': 'Go', 'go programming': 'Go',
-    'ruby on rails': 'Ruby on Rails', 'rails': 'Ruby on Rails',
-    'php programming': 'PHP', 'laravel framework': 'Laravel',
-    'application programming interface': 'API', 'restful api': 'REST API', 'rest apis': 'REST API', 'web api': 'REST API',
-    'object oriented programming': 'OOP', 'object-oriented': 'OOP', 'oop concepts': 'OOP',
-    'microservice architecture': 'Microservices', 'microservices': 'Microservices',
-    
-    # --- Frontend ---
-    'react.js': 'ReactJS', 'reactjs': 'ReactJS', 'react native': 'React Native',
-    'vue.js': 'VueJS', 'vuejs': 'VueJS', 'vue': 'VueJS',
-    'angularjs': 'Angular', 'angular.js': 'Angular',
-    'javascript programming': 'JavaScript', 'js': 'JavaScript', 'ecmascript': 'JavaScript',
-    'typescript programming': 'TypeScript', 'ts': 'TypeScript',
-    'html5': 'HTML', 'css3': 'CSS', 'cascading style sheets': 'CSS',
-    'front-end web development': 'Frontend', 'front end': 'Frontend',
-    
-    # --- Database & Data ---
-    'structured query language': 'SQL', 'sql queries': 'SQL', 'mysql database': 'MySQL',
-    'postgresql': 'PostgreSQL', 'postgres': 'PostgreSQL',
-    'mongodb': 'MongoDB', 'mongo db': 'MongoDB',
-    'relational database': 'RDBMS', 'nosql databases': 'NoSQL',
-    'amazon web services': 'AWS', 'google cloud platform': 'GCP', 'microsoft azure': 'Azure',
-    
-    # --- AI / Data Science ---
-    'machine learning': 'Machine Learning', 'ml': 'Machine Learning',
-    'artificial intelligence': 'AI', 'genai': 'Generative AI', 'generative ai': 'Generative AI',
-    'deep learning': 'Deep Learning', 'dl': 'Deep Learning',
-    'natural language processing': 'NLP', 'computer vision': 'Computer Vision',
-    
-    # --- Mobile ---
-    'ios development': 'iOS', 'android development': 'Android', 'android studio': 'Android',
-
-    # --- .NET & C# Ecosystem ---
-    'entity framework core': 'Entity Framework',
-    'entity framework': 'Entity Framework',
-    'ef core': 'Entity Framework',
-    'ado.net': 'ADO.NET',
-    'linq': 'LINQ',
-
-    # --- Cybersecurity (Bổ sung mới) ---
-    'cyber security': 'Cybersecurity', 'information security': 'Information Security',
-    'pen testing': 'Penetration Testing', 'ethical hack': 'Ethical Hacking',
-    'network sec': 'Network Security', 'crypto': 'Cryptography'
-}
 
 def clean_skill_local(skill):
     """Hàm dọn rác bọc thép (Xử lý theo thứ tự tuyệt đối)"""
@@ -85,61 +65,9 @@ def clean_skill_local(skill):
         return None
 
     # ==========================================
-    # BƯỚC 1: THẺ VIP (MIỄN TỬ KIM BÀI)
+    # BƯỚC 1: MAPPING BÌNH THƯỜNG (Sử dụng từ điển chung của toàn hệ thống)
     # ==========================================
-    VIP_SKILLS = {
-        'c#': 'C#', 
-        'c++': 'C++', 
-        '.net': '.NET', 
-        'react': 'ReactJS', 
-        'vue': 'VueJS', 
-        'node': 'NodeJS',
-        'java': 'Java',      
-        'python': 'Python',  
-        'go ': 'Go',         
-        'golang': 'Go',
-        'php': 'PHP',
-        'git': 'Git',
-        'github': 'GitHub',
-        'gitlab': 'GitLab',
-        'bitbucket': 'Bitbucket',
-        'postman': 'Postman',
-        'swagger': 'Swagger',
-        'agile': 'Agile',
-        'scrum': 'Scrum',
-        'bash': 'Bash',
-        'powershell': 'PowerShell',
-        'c (programming language)': 'C',
-        'swift': 'Swift',
-        'scala': 'Scala',
-        'rust': 'Rust',
-        'r programming': 'R',
-        'ruby': 'Ruby',
-        'objective-c': 'Objective-C',
-        'visual basic': 'Visual Basic',
-        'cobol': 'COBOL',
-        'test driven development': 'TDD',
-        'behavior-driven development': 'BDD',
-        'site reliability': 'SRE',
-        'linux': 'Linux',
-        'ci/cd': 'CI/CD',
-        'express': 'ExpressJS', # Đã sửa lỗi khai báo đè
-        'spring boot': 'Spring Boot',
-        # --- Bổ sung VIP cho Cybersecurity ---
-        'cryptography': 'Cryptography',
-        'penetration testing': 'Penetration Testing',
-        'ethical hacking': 'Ethical Hacking',
-        'cybersecurity': 'Cybersecurity'
-    }
-    
-    for vip_key, vip_val in VIP_SKILLS.items():
-        if vip_key in s:
-            return vip_val 
-
-    # ==========================================
-    # BƯỚC 1.5: MAPPING BÌNH THƯỜNG (Cho các từ còn lại)
-    # ==========================================
-    for key, val in MAPPING.items():
+    for key, val in GLOBAL_ALIAS_MAP.items():
         pattern = r'\b' + re.escape(key) + r'\b'
         if re.search(pattern, s):
             return val
@@ -172,8 +100,39 @@ def clean_skill_local(skill):
         
     return s.title()
 
-def main():
-    print("🚀 BẮT ĐẦU DỌN RÁC BẰNG PYTHON (OFFLINE - SIÊU TỐC)")
+def run_test_cases():
+    """Hàm test thử nghiệm các ca khó để Sếp kiểm chứng logic"""
+    print("=" * 80)
+    print("🧪 BÀN THỬ NGHIỆM: KIỂM TRA LOGIC LỌC RÁC KỸ NĂNG")
+    print("=" * 80)
+    
+    # Tập hợp các ca từ sạch đến siêu bẩn
+    test_cases = [
+        "react.js",                        # Chuẩn hóa -> ReactJS
+        "core java programming",           # Chuẩn hóa -> Java
+        "c# programming",                  # Chuẩn hóa -> C#
+        "front-end web development",       # Chuẩn hóa -> Frontend
+        "learn python 3 from scratch",     # Có chữ 'learn' -> BỊ CHÉM
+        "best practices in c++",           # Có chữ 'best practices' -> BỊ CHÉM
+        "introduction to agile",           # Có 'introduction' & 'agile' -> BỊ CHÉM
+        "vscode extensions",               # Có 'vscode' (Blacklist exact) -> BỊ CHÉM
+        "docker & kubernetes!!!",          # Xóa ký tự lạ, giữ lại chữ
+        "  node.js  "                      # Cắt khoảng trắng thừa -> NodeJS
+    ]
+    
+    for raw in test_cases:
+        cleaned = clean_skill_local(raw)
+        if cleaned:
+            print(f" 🟢 Bẩn: '{raw:<30}' ➡️  Sạch: {cleaned}")
+        else:
+            print(f" 🔴 Bẩn: '{raw:<30}' ➡️  [BỊ TIÊU DIỆT TỪ VÒNG GỬI XE]")
+            
+    print("=" * 80)
+
+
+def process_real_files():
+    """Hàm chạy ETL thực tế trên file json"""
+    print("\n🚀 BẮT ĐẦU DỌN RÁC BẰNG PYTHON TRÊN FILE THẬT (OFFLINE - SIÊU TỐC)")
     try:
         with open(RAW_FILE, 'r', encoding='utf-8') as f:
             courses = json.load(f)
@@ -203,5 +162,14 @@ def main():
     print(f"📁 Dữ liệu đã sẵn sàng tại: {CLEAN_FILE}")
     print("👉 SẾP CÓ THỂ CHẠY FILE 'import_courses_to_sql.py' ĐƯỢC RỒI!")
 
+
 if __name__ == "__main__":
-    main()
+    # 1. Chạy Demo để Sếp xem mắt trước
+    run_test_cases()
+    
+    # 2. Hỏi ý kiến Sếp xem có muốn quất luôn file thật không
+    user_choice = input("\n[?] Sếp đã ưng ý với kết quả Test chưa? Gõ 'y' để dọn rác file thật, 'n' để thoát: ")
+    if user_choice.lower() == 'y':
+        process_real_files()
+    else:
+        print("🛑 Đã hủy quá trình chạy file thật.")

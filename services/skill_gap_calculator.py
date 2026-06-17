@@ -3,6 +3,11 @@ import re
 from typing import Dict, List, Tuple
 from services.aliases import GLOBAL_ALIAS_MAP, clean_and_normalize
 
+# =====================================================================
+# KHỐI 1: BỘ TỪ ĐIỂN ĐỒNG NGHĨA (ALIAS RESOLVER)
+# Mục đích: Tìm tất cả các "anh em họ hàng" của một kỹ năng. 
+# Ví dụ: Nhập vào "React", hàm sẽ trả về ["React", "ReactJS", "React.js"]
+# =====================================================================
 def get_skill_aliases(skill: str) -> List[str]:
     skill_clean = skill.strip().lower()
     # Tìm tất cả các từ khóa gốc trỏ về cùng một giá trị đích
@@ -12,6 +17,11 @@ def get_skill_aliases(skill: str) -> List[str]:
         aliases.append(target_val)
     return aliases
 
+# =====================================================================
+# KHỐI 2: HÀM TÌM KIẾM KỸ NĂNG TRONG CV (SKILL MATCHER)
+# Mục đích: Quét xem ứng viên có sở hữu kỹ năng đang xét (hoặc các từ 
+# đồng nghĩa của nó) hay không, và trả về Level cao nhất mà ứng viên đạt được.
+# =====================================================================
 def find_matching_skill(skill_to_find: str, available_skills: Dict) -> Tuple:
     skill_to_find = skill_to_find.strip()
     
@@ -19,14 +29,17 @@ def find_matching_skill(skill_to_find: str, available_skills: Dict) -> Tuple:
         if isinstance(value, dict): return value.get("level", 0)
         return value
 
+    # Gộp từ khóa gốc và các từ đồng nghĩa vào một mảng để tìm kiếm
     search_terms = [skill_to_find.lower()] + [a.lower() for a in get_skill_aliases(skill_to_find)]
     best_match_name = None
     best_match_level = 0
 
+    # Quét toàn bộ kho kỹ năng của ứng viên
     for available_skill, info in available_skills.items():
         available_skill_lower = available_skill.lower()
         cv_lvl = get_level(info)
         
+        # Nếu trúng từ khóa và level cao hơn mức đang lưu thì cập nhật
         for term in search_terms:
             if term == available_skill_lower or term in available_skill_lower or available_skill_lower in term:
                 if cv_lvl > best_match_level:
@@ -37,6 +50,11 @@ def find_matching_skill(skill_to_find: str, available_skills: Dict) -> Tuple:
         return best_match_name, best_match_level
     return None, 0
 
+# =====================================================================
+# KHỐI 3: HÀM TÁCH MỆNH ĐỀ PHỨC TẠP (COMPLEX CLAUSE PARSER)
+# Mục đích: Bóc tách các cụm kỹ năng lồng nhau. 
+# VD: "Java (Spring Boot, Hibernate)" -> ["Java", "Spring Boot", "Hibernate"]
+# =====================================================================
 def parse_complex_candidate(candidate_str: str) -> List[str]:
     match = re.match(r'([^\(]+)(?:\((.*)\))?', candidate_str)
     if not match: 
@@ -48,14 +66,23 @@ def parse_complex_candidate(candidate_str: str) -> List[str]:
         skills.extend(sub_skills)
     return skills
 
+# =====================================================================
+# KHỐI 4: TRÁI TIM CỦA THUẬT TOÁN - TÍNH TOÁN SKILL GAP
+# Mục đích: So khớp JD (yêu cầu) và CV (năng lực), tính toán khoảng cách 
+# và đề xuất lộ trình. Xử lý cực kỳ chặt chẽ logic EXACT (Bắt buộc) 
+# và ANY (Tự chọn 1 trong các nhánh).
+# =====================================================================
 def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, Dict]:
-    matched = {} 
-    gap = {}
+    matched = {} # Chứa các kỹ năng đã thỏa mãn
+    gap = {}     # Chứa các kỹ năng bị hổng
     
     for skill_key, jd_info in jd_skills.items():
         level_required = jd_info.get("level", 1) if isinstance(jd_info, dict) else jd_info
         match_mode = jd_info.get("match_mode", "EXACT") if isinstance(jd_info, dict) else "EXACT"
         
+        # ---------------------------------------------------------
+        # CHẾ ĐỘ 'ANY' - XỬ LÝ MỆNH ĐỀ HOẶC (VD: C# | Java | Python)
+        # ---------------------------------------------------------
         if match_mode == "ANY":
             candidates = [s.strip() for s in skill_key.split("|")]
             
@@ -64,6 +91,7 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
             best_branch_missing = []
             is_complex = False
             
+            # Quét từng nhánh (VD: quét nhánh C#, sau đó quét nhánh Java)
             for candidate in candidates:
                 req_skills = parse_complex_candidate(candidate)
                 if len(req_skills) > 1:
@@ -72,15 +100,17 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
                 branch_score = 0
                 branch_missing = []
                 
+                # Tính điểm cho nhánh hiện tại dựa trên năng lực CV
                 for rs in req_skills:
                     found_skill, found_level = find_matching_skill(rs, cv_skills_assessed)
                     if found_level >= level_required:
                         branch_score += 1
                     else:
                         if found_level > 0:
-                            branch_score += 0.5
+                            branch_score += 0.5 # Cho điểm khuyến khích nếu có biết chút ít
                         branch_missing.append((rs, found_level, found_skill))
                         
+                # Cập nhật nhánh TỐT NHẤT (ít phải học lại nhất) cho người dùng
                 if branch_score > best_branch_score:
                     best_branch_score = branch_score
                     best_branch = candidate
@@ -92,6 +122,7 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
             
             final_match_mode = "ANY_COMPLEX" if is_complex else "ANY"
 
+            # Nếu nhánh tốt nhất không thiếu gì -> Đạt yêu cầu
             if len(best_branch_missing) == 0:
                 matched[skill_key] = {
                     "level_required": level_required,
@@ -100,16 +131,19 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
                     "match_mode": final_match_mode,
                     "status": f"✅ ĐẠT YÊU CẦU (Theo nhánh: {best_branch})" if is_complex else f"✅ ĐẠT YÊU CẦU"
                 }
+            # Nếu nhánh tốt nhất vẫn thiếu -> Đưa vào danh sách Lỗ hổng (Gap)
             else:
                 total_missing_levels = []
                 missing_names = []
                 
                 for ms, curlvl, fname in best_branch_missing:
+                    # Tính toán chênh lệch Level (VD: Từ Lvl 1 lên Lvl 3)
                     missing_levels = list(range(curlvl + 1 if curlvl > 0 else 1, level_required + 1))
                     total_missing_levels.extend(missing_levels)
                     display_name = fname if fname else ms
                     missing_names.append(f"{display_name} (Lvl {curlvl}->{level_required})" if curlvl>0 else f"{display_name} (Lvl 1->{level_required})")
                 
+                # Gợi ý text cho Frontend hiển thị
                 if best_branch_score == 0:
                     rec_text = f"Học 1 trong [{', '.join(candidates)}] từ đầu." if not is_complex else f"Chưa biết gì. Gợi ý chọn nhánh '{best_branch}' và học từ đầu: " + ", ".join(missing_names)
                 else:
@@ -125,12 +159,16 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
                     "recommendation": rec_text
                 }
                 
+        # ---------------------------------------------------------
+        # CHẾ ĐỘ 'EXACT' - BẮT BUỘC PHẢI CÓ (VD: Git, Docker)
+        # ---------------------------------------------------------
         else:
-            # ===== EXACT MATCH =====
             found_skill, user_level = find_matching_skill(skill_key, cv_skills_assessed)
             
+            # Nếu CV chưa đạt Level yêu cầu
             if user_level < level_required:
                 missing_levels = list(range(user_level + 1 if user_level > 0 else 1, level_required + 1))
+                #lấy tên hiển thị của CV nếu có, nếu không thì lấy tên kỹ năng gốc từ JD
                 display_name = found_skill if found_skill else skill_key
                 rec_text = f"Nâng {display_name} từ Level {user_level} lên {level_required}" if user_level > 0 else f"Học {display_name} từ Level 1 đến {level_required}"
                 
@@ -142,6 +180,7 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
                     "match_mode": "EXACT",
                     "recommendation": rec_text
                 }
+            # Nếu CV thỏa mãn Level
             else:
                 matched[skill_key] = {
                     "level_required": level_required,
@@ -153,6 +192,11 @@ def compute_skill_gap(cv_skills_assessed: Dict, jd_skills: Dict) -> Tuple[Dict, 
                 
     return gap, matched
 
+# =====================================================================
+# KHỐI 5: PHÂN LOẠI MỨC ĐỘ ƯU TIÊN VÀ ƯỚC TÍNH THỜI GIAN
+# Mục đích: Chia lỗ hổng ra làm 3 loại (Critical, Important, Nice To Have) 
+# để lên lộ trình học bài bản. Mặc định 1 Level hổng = 20h học.
+# =====================================================================
 def get_gap_summary(gap: Dict) -> Dict:
     critical, important, nice_to_have = [], [], []
     total_hours = 0
@@ -250,4 +294,41 @@ if __name__ == "__main__":
             print(f"  - {item['recommendation']} ⏱️ ({item['hours_estimate']}h)")
             
     print(f"\n⏱️ TỔNG THỜI GIAN DỰ KIẾN: {summary['total_hours_estimate']} giờ học")
+    print("=" * 80)# ===== BÀN TEST DÀNH RIÊNG CHO LỜI KHUYÊN (rec_text) =====
+if __name__ == "__main__":
+    # Đóng giả một ứng viên có kỹ năng dở dang
+    cv_test = {
+        "Python": 1,          # Biết sơ sơ Python
+        "Java": 2,            # Đang theo hệ Java khá vững
+        "Spring Boot": 2      # Biết dùng Spring Boot
+        # Hoàn toàn mù tịt Ruby, PHP, NodeJS, C#
+    }
+    
+    # 4 Kịch bản JD đánh đúng vào 4 dòng if/else của Sếp
+    jd_test = {
+        # KỊCH BẢN 1: Chưa biết môn nào trong list, và list này KHÔNG lồng ghép
+        "Ruby|Go|Rust": {"level": 2, "match_mode": "ANY"},
+        
+        # KỊCH BẢN 2: Chưa biết môn nào, và list này CÓ lồng ghép phức tạp
+        "PHP (Laravel, MySQL)|NodeJS (Express, MongoDB)": {"level": 2, "match_mode": "ANY"},
+        
+        # KỊCH BẢN 3: Đã biết 1 môn trong list (Python Lvl 1), list KHÔNG lồng ghép
+        "Python|C#|C++": {"level": 3, "match_mode": "ANY"},
+        
+        # KỊCH BẢN 4: Đã biết 1 nhánh (Java), list CÓ lồng ghép phức tạp
+        "Java (Spring Boot, Hibernate)|C# (.NET Core, SQL Server)": {"level": 3, "match_mode": "ANY"}
+    }
+    
+    gap, matched = compute_skill_gap(cv_test, jd_test)
+    summary = get_gap_summary(gap)
+    
     print("=" * 80)
+    print("🎯 DEMO 4 KỊCH BẢN LỜI KHUYÊN (rec_text) ĐỂ BẮT FRONTEND HIỂN THỊ:")
+    print("=" * 80)
+    
+    # Gộp tất cả các rổ hổng lại để in ra cho dễ nhìn
+    all_gaps = summary["critical"] + summary["important"] + summary["nice_to_have"]
+    
+    for i, item in enumerate(all_gaps, 1):
+        print(f"\n[KỊCH BẢN {i}] Yêu cầu JD: {item['skill']}")
+        print(f"👉 Dòng rec_text sinh ra: \033[92m{item['recommendation']}\033[0m")

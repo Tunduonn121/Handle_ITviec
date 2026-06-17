@@ -83,18 +83,37 @@ function App() {
 
             {/* Cột 2: GAP (Khoảng trống) */}
             <div className="bg-orange-50/30 p-6 rounded-2xl border border-orange-200 shadow-sm relative overflow-hidden">
-              {/* Badge Đỏ nổi bật */}
               <div className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">CẦN HỌC THÊM</div>
               <h3 className="text-lg font-bold text-orange-600 mb-4 flex items-center border-b border-orange-200 pb-2">
                 <i className="fa-solid fa-triangle-exclamation mr-2"></i> Khoảng trống (Gap)
               </h3>
               <div className="space-y-3">
-                {Object.entries(gap || {}).map(([skill, levels]) => (
-                  <div key={skill} className="flex justify-between items-center bg-orange-100/50 p-2 rounded-lg border border-orange-200">
-                    <span className="font-bold text-orange-800">{skill}</span>
-                    <span className="text-xs font-bold text-orange-600">Thiếu Lv: {levels.join(', ')}</span>
-                  </div>
-                ))}
+                {Object.entries(gap || {}).map(([skill, gapInfo]) => {
+                  
+                  // 🔥 THUẬT TOÁN BỌC THÉP: Xử lý cả 2 trường hợp Array và Object
+                  const isOldFormat = Array.isArray(gapInfo);
+                  const targetLevel = isOldFormat ? gapInfo[gapInfo.length - 1] : (gapInfo.level_required || '?');
+                  const missingLevels = isOldFormat ? gapInfo.join(', ') : gapInfo.missing_levels?.join(', ');
+                  const recText = !isOldFormat && gapInfo.recommendation ? gapInfo.recommendation : `Cần học thêm Level ${missingLevels}`;
+
+                  return (
+                    <div key={skill} className="flex flex-col bg-orange-100/50 p-3 rounded-lg border border-orange-200">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-bold text-orange-800">{skill}</span>
+                        <span className="text-xs font-bold text-orange-600 bg-orange-200 px-2 py-1 rounded">
+                          Mục tiêu Lv {targetLevel}
+                        </span>
+                      </div>
+                      
+                      <div className="mt-1 border-t border-orange-200/50 pt-1">
+                        <p className="text-sm text-slate-700 italic">
+                          💡 {recText}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+                
                 {(!gap || Object.keys(gap).length === 0) && (
                   <div className="text-center text-green-600 font-bold py-4">🎉 Tuyệt vời! Bạn cover 100% JD!</div>
                 )}
