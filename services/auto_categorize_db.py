@@ -104,8 +104,11 @@ VALID_V2_STRUCTURE = {
 }
 
 # Tiền xử lý cấu trúc cây thành chuỗi Text để nạp vào Prompt cho LLM
-TREE_STRUCTURE = "\n".join([f'{i+1}. "{cat}" (Sub: {", ".join([f'"{s}"' for s in subs])})' for i, (cat, subs) in enumerate(VALID_V2_STRUCTURE.items())])
-
+_lines = []
+for i, (cat, subs) in enumerate(VALID_V2_STRUCTURE.items()):
+    subs_str = ", ".join(['"' + s + '"' for s in subs])
+    _lines.append(f'{i+1}. "{cat}" (Sub: {subs_str})')
+TREE_STRUCTURE = "\n".join(_lines)
 
 # =====================================================================
 # FUNCTIONS (CÁC HÀM XỬ LÝ LÕI)
@@ -219,6 +222,7 @@ Trả về JSON:
                 final_cat = data.get("category", "").strip()
                 final_sub = data.get("subcategory", "").strip()
 
+                
                 # Đối chiếu chéo để đảm bảo LLM không bịa ra Subcategory (Zero-Hallucination)
                 for m_cat, subs in VALID_V2_STRUCTURE.items():
                     if final_sub in subs:
@@ -226,10 +230,12 @@ Trả về JSON:
 
                 return c_id, title, final_cat, final_sub
 
-        except Exception:
-            time.sleep(2) # Backoff an toàn khi rớt mạng API
+        except Exception as e:
+            print(f"   ⚠️ LLM lỗi (thử lại {attempt+1}/{max_retries}): {e}")
+            time.sleep(2)
 
     # Fallback nếu LLM bó tay
+    # Subcategory KHÔNG thuộc taxonomy -> KHÔNG nhận nhãn bịa, ép review tay
     return c_id, title, "Uncategorized", "Need Manual Review"
 
 
@@ -329,7 +335,7 @@ def main():
         # Tối ưu hóa API bằng xử lý đa luồng (Multi-threading)
         with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             with tqdm(total=len(rows), desc="Đang chạy tiếp", unit="khóa") as pbar:
-                batch_size = 1 
+                batch_size = MAX_WORKERS * 2
                 for i in range(0, len(rows), batch_size):
                     batch = rows[i:i + batch_size]
                     futures = [executor.submit(ai_classify_course, row) for row in batch]
@@ -432,4 +438,10 @@ def main_demo_cho_co():
     print("\n🎉 ĐÃ HOÀN THÀNH DEMO 3 CA KHÓ. KIẾN TRÚC SINGLE-LABEL ĐĐƯỢC BẢO VỆ!")
 
 if __name__ == "__main__":
-    main_demo_cho_co()
+    import sys
+    # Mặc định: PHÂN LOẠI toàn bộ DB. Thêm cờ "demo" nếu muốn chạy demo cho hội đồng.
+    if len(sys.argv) > 1 and sys.argv[1] == "demo":
+        main_demo_cho_co()
+    else:
+        main()
+        # Giờ py services\auto_categorize_db.py sẽ phân loại thật; muốn demo thì py services\auto_categorize_db.py demo.

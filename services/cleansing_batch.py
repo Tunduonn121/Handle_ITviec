@@ -149,6 +149,7 @@ def run_test_cases():
         "teamwork",                        # PHẢI bị chém (soft skill)   
         "vscode extensions",               # PHẢI bị chém (IDE rác)
         "  node.js  ", 
+        "ci/cd"
     ]
     
     for raw in test_cases:

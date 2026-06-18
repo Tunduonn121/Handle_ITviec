@@ -161,6 +161,9 @@ GLOBAL_ALIAS_MAP = {
 }
 
 def clean_and_normalize(skill_name: str) -> str:
-    """Hàm tiện ích giúp làm sạch và trả về giá trị chuẩn hóa của một kỹ năng"""
-    s = skill_name.lower().strip().replace("/", " ").replace("-", " ")
-    return GLOBAL_ALIAS_MAP.get(s, s)
+    """Chuẩn hóa skill về tên chuẩn. Thử khớp BẢN GỐC trước, rồi mới thử bản đã làm sạch."""
+    s = skill_name.lower().strip()
+    if s in GLOBAL_ALIAS_MAP:            # thử nguyên gốc trước -> giữ được 'ci/cd'
+        return GLOBAL_ALIAS_MAP[s]
+    s2 = s.replace("/", " ").replace("-", " ")
+    return GLOBAL_ALIAS_MAP.get(s2, s2)

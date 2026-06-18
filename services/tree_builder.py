@@ -105,6 +105,14 @@ def build_course_tree(flat_courses_list):
         # Đẩy khóa học vào đúng nhánh (lá) của cây
         course_tree[cat][subcat].append(course_info)
 
+    # CẢNH BÁO: đếm khóa chưa phân loại để biết auto_categorize đã chạy đủ chưa
+    unknown_count = 0
+    if "Unknown" in course_tree:
+        unknown_count = sum(len(courses) for courses in course_tree["Unknown"].values())
+    if unknown_count > 0:
+        print(f"⚠️ CẢNH BÁO: {unknown_count} khóa học CHƯA phân loại (nằm trong nhánh 'Unknown').")
+        print("   -> Hãy chạy: py services\\auto_categorize_db.py  rồi khởi động lại server.")
+
     return course_tree
 
 # =====================================================================
