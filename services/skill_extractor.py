@@ -1,23 +1,13 @@
-import os
 import json
-from dotenv import load_dotenv
-from ollama import Client
+# IMPORT CHUẨN CLEAN ARCHITECTURE: Lấy API Key từ Bác quản gia (config.py)
 
-load_dotenv()
-api_key = os.getenv("OLLAMA_API_KEY")
-
-if not api_key:
-    print("❌ LỖI: Sếp chưa điền OLLAMA_API_KEY vào file .env kìa!")
-
-client = Client(
-    host='https://ollama.com',
-    headers={'Authorization': f'Bearer {api_key}'}
-)
-
+from core.config import ollama_client as client, MODEL_NAME, OLLAMA_API_KEY
 def extract_skills_from_jd(jd_text):
-    if not jd_text or jd_text == "N/A" or not api_key:
+    # Rào chắn bảo vệ: Tránh lỗi sập hệ thống nếu thiếu API Key
+    if not jd_text or jd_text == "N/A" or not OLLAMA_API_KEY:
         return {}
 
+    # Tiền xử lý văn bản: Chuẩn hóa các dấu câu lộn xộn
     jd_text = jd_text.replace(" / ", "/").replace(" /", "/").replace("/ ", "/")
     jd_text = jd_text.replace(", or ", " or ").replace(", and/or ", " or ")
     jd_text_safe = jd_text.replace("{", "{{").replace("}", "}}")
@@ -25,6 +15,7 @@ def extract_skills_from_jd(jd_text):
     if len(jd_text) > 8000:
         print(f"⚠️ JD bị cắt: {len(jd_text)} → 8000 ký tự")
 
+    # Xây dựng câu lệnh Prompt cho LLM
     prompt = f"""[SYSTEM ROLE]
 Bạn là Hệ thống Phân tích Kỹ năng (Skill Extraction Engine) lõi. Nhiệm vụ: Trích xuất Hard Tech Skills từ JD.
 
@@ -66,26 +57,39 @@ Output BẮT BUỘC là MẢNG JSON:
 ---
 """
     try:
+        # Gọi API Ollama sử dụng Tên Model từ config.py
         response = client.chat(
-            model='qwen3-coder:480b-cloud',
+            model=MODEL_NAME, 
             messages=[{'role': 'user', 'content': prompt}], 
             stream=False, format='json', options={'temperature': 0.0}
         )
         
+        # Làm sạch chuỗi JSON trả về
         result_text = response['message']['content'].replace('```json', '').replace('```', '').strip()
         start_idx = result_text.find('[')
         end_idx = result_text.rfind(']') + 1
         
         if start_idx != -1 and end_idx != -1:
             parsed_list = json.loads(result_text[start_idx:end_idx])
-            return {item["skill_name"]: {"level": item["level"], "match_mode": item["match_mode"]} for item in parsed_list}
+            result = {}
+            for item in parsed_list:
+                if not isinstance(item, dict):
+                    continue
+                name = item.get("skill_name")
+                if not name:
+                    continue
+                result[name] = {
+                    "level": item.get("level", 2),
+                    "match_mode": item.get("match_mode", "EXACT"),
+                }
+            return result
         return {}
     except Exception as e:
         print(f"\n❌ Lỗi bóc tách JD: {e}")
         return {}
 
 def extract_skills_from_cv(cv_text):
-    if not cv_text or cv_text == "N/A" or not api_key:
+    if not cv_text or cv_text == "N/A" or not OLLAMA_API_KEY:
         return {}
 
     cv_text = cv_text.replace(" / ", "/").replace(" /", "/").replace("/ ", "/")
@@ -123,7 +127,7 @@ Output BẮT BUỘC là MẢNG JSON:
 """
     try:
         response = client.chat(
-            model='qwen3-coder:480b-cloud',
+            model=MODEL_NAME, 
             messages=[{'role': 'user', 'content': prompt}], 
             stream=False, format='json', options={'temperature': 0.0}
         )
@@ -146,6 +150,7 @@ Output BẮT BUỘC là MẢNG JSON:
         return {}   
 
 if __name__ == "__main__":
+    # ĐOẠN TEST CHẠY ĐỘC LẬP (MOCK TEST)
     test_jd = """
     VỊ TRÍ: SENIOR BACKEND ENGINEER (FINTECH)
     
@@ -164,7 +169,7 @@ if __name__ == "__main__":
     - CI/CD (Gitlab CI, Jenkins).
     """
     
-    print("⏳ Đang bóc tách JD...")
+    print("⏳ Đang bóc tách JD bằng AI...")
     jd_skills = extract_skills_from_jd(test_jd)
     print("\n🚀 KẾT QUẢ BÓC TÁCH JD (JSON):")
     print(json.dumps(jd_skills, indent=4, ensure_ascii=False))

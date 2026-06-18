@@ -1,34 +1,10 @@
 import json
 import os
 import re
-from ollama import Client
-from dotenv import load_dotenv
-from services.aliases import GLOBAL_ALIAS_MAP
+from services.aliases import is_skill_match
+from services.aliases import GLOBAL_ALIAS_MAP, is_skill_match
 
-# =====================================================================
-# KHỐI 1: KHỞI TẠO MÔI TRƯỜNG VÀ KẾT NỐI AI
-# Tải API Key từ file .env và thiết lập kết nối tới model Qwen-480B
-# =====================================================================
-client = Client(
-    host=OLLAMA_HOST_URL, 
-    headers={'Authorization': f'Bearer {OLLAMA_API_KEY}'}
-)
-
-# =====================================================================
-# KHỐI 2: HÀM SO KHỚP KỸ NĂNG AN TOÀN (ANTI-HALLUCINATION UTILS)
-# Mục đích: Đảm bảo việc so sánh 2 kỹ năng (Ví dụ: "C#" và "C# .NET") 
-# là chuẩn xác, chống lại các lỗi so khớp chuỗi con thông thường.
-# =====================================================================
-def is_safe_match(term1: str, term2: str) -> bool:
-    t1, t2 = term1.lower().strip(), term2.lower().strip()
-    if t1 == t2: return True
-    
-    # Bọc thép đặc trị cho các từ khóa đặc biệt như C# và .NET
-    if "c#" in t1 and "c#" in t2: return True
-    if ".net" in t1 and ".net" in t2: return True
-    
-    words1, words2 = set(t1.split()), set(t2.split())
-    return words1.issubset(words2) or words2.issubset(words1)
+from core.config import ollama_client as client, MODEL_NAME
 
 # =====================================================================
 # KHỐI 3: TÌM KIẾM KHÓA HỌC COMBO (ĐA KỸ NĂNG)
@@ -46,7 +22,7 @@ def find_combo_courses(candidate_courses, gap_dict):
         # Tiền xử lý và chuẩn hóa kỹ năng dựa trên GLOBAL_ALIAS_MAP
         for c_s in c_skills_raw:
             for k, v in GLOBAL_ALIAS_MAP.items():
-                if is_safe_match(k, c_s) or is_safe_match(v, c_s):
+                if is_skill_match(k, c_s) or is_skill_match(v, c_s):
                     c_skills_normalized.add(k)
             c_skills_normalized.add(c_s)
 
@@ -89,7 +65,7 @@ def group_courses_by_gap(candidate_courses, gap_dict):
                 search_term_clean = search_term.replace("/", " ").replace("-", " ") 
                 
                 # Kiểm tra khóa học có chứa kỹ năng đang xét và đúng Level không
-                is_skill_match = any(is_safe_match(search_term_clean, s.lower().replace("/", " ").replace("-", " ")) for s in c_skills)
+                is_skill_match = any(is_skill_match(search_term_clean, s.lower().replace("/", " ").replace("-", " ")) for s in c_skills)
                 
                 if is_skill_match and c_lvl == req_level:
                     # Lược bỏ dữ liệu thừa để nhét vừa vào Context Window của LLM
@@ -127,7 +103,7 @@ def evaluate_ai_result(course, expected_step_name, gap_dict):
     skill_match_score = 0
     for s in c_skills:
         s_clean = GLOBAL_ALIAS_MAP.get(s.replace("/", " ").replace("-", " "), s.replace("/", " ").replace("-", " "))
-        if is_safe_match(req_clean, s_clean):
+        if is_skill_match(req_clean, s_clean):
             skill_match_score = 1
             break
             
@@ -136,7 +112,7 @@ def evaluate_ai_result(course, expected_step_name, gap_dict):
     
     # Tiêu chí 3: Phạt dư thừa kiến thức (Redundancy Penalty - Trọng số 0.1)
     gap_keys = [k.lower() for k in gap_dict.keys()]
-    redundant_skills = [s for s in c_skills if not any(is_safe_match(g, GLOBAL_ALIAS_MAP.get(s.replace("/", " ").replace("-", " "), s.replace("/", " ").replace("-", " "))) for g in gap_keys)]
+    redundant_skills = [s for s in c_skills if not any(is_skill_match(g, GLOBAL_ALIAS_MAP.get(s.replace("/", " ").replace("-", " "), s.replace("/", " ").replace("-", " "))) for g in gap_keys)]
     redundancy_penalty = len(redundant_skills) / len(c_skills) if c_skills else 0
 
     # TÍNH TỔNG ĐIỂM E(c)

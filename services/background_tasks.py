@@ -128,14 +128,15 @@ def process_llm_logic(task_id: str, cv_text: str, jd_text: str, verified_skills:
         # Mục đích: Cất thành phẩm vào DB tạm để API Polling của Frontend (/task-status) chạy tới lấy.
         # =====================================================================
         state.tasks_db[task_id] = {
-            "status": "completed", 
+            "status": "completed",
             "data": {
                 "cv_skills": cv_skills,
                 "jd_skills": jd_skills,
                 "gap": gap_raw,
+                "gap_normalized": search_gap_dict,   # ⭐ tên gap đã chuẩn hóa, khớp với cái đem đi search
                 "combo_courses": combo_courses,
                 "regular_courses": regular_courses
-            }, 
+            },
             "message": "Phân tích thành công!"
         }
         print(f"✅ [TASK {task_id}] HOÀN TẤT VÀ ĐÃ LƯU KẾT QUẢ VÀO CACHE.")

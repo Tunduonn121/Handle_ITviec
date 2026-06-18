@@ -1,17 +1,13 @@
 import json
 import re
 import os
-from dotenv import load_dotenv
-from ollama import Client
-from .tree_builder import load_courses_from_sql, build_course_tree
 
+
+from .tree_builder import load_courses_from_sql, build_course_tree
+from core.config import ollama_client as client, MODEL_NAME
 # =====================================================================
 # KHỐI 1: KHỞI TẠO MÔI TRƯỜNG VÀ KẾT NỐI LLM
 # =====================================================================
-load_dotenv()
-api_key = os.getenv("OLLAMA_API_KEY")
-client = Client(host='https://ollama.com', headers={'Authorization': f'Bearer {api_key}'})
-MODEL_NAME = 'qwen3-coder:480b-cloud'
 
 # =====================================================================
 # KHỐI 2: KHỞI TẠO BỘ NHỚ ĐỆM TỐI ƯU HÓA (MICRO-PRUNING CACHE)
@@ -21,6 +17,11 @@ MODEL_NAME = 'qwen3-coder:480b-cloud'
 # Bộ nhớ đệm lưu vết toàn cục nằm trên RAM
 MICRO_PRUNING_CACHE = {}
 
+def clear_pruning_cache():
+    """Xóa cache khi cây được nạp lại (hot-reload) để tránh quyết định prune dựa trên dữ liệu cũ."""
+    global MICRO_PRUNING_CACHE
+    MICRO_PRUNING_CACHE = {}
+    print("🧹 [CACHE] Đã xóa MICRO_PRUNING_CACHE do cây được nạp lại.")
 # =====================================================================
 # KHỐI 3: HÀM ĐÁNH GIÁ VÀ LƯU CACHE (SINGLE SKILL EVALUATOR)
 # Mục đích: Hỏi AI xem nhánh hiện tại (VD: "Backend") có dạy môn 
@@ -55,9 +56,9 @@ Trả lời một chữ duy nhất: YES hoặc NO.
         # Lưu kết quả vừa gọi API vào Cache để lần sau không phải gọi nữa
         MICRO_PRUNING_CACHE[node_path][skill_clean] = result
         return result
-    except Exception:
-        # Fallback an toàn: Thà duyệt nhầm còn hơn bỏ sót khi lỗi mạng API
-        return True 
+    except Exception as e:
+        print(f"   ⚠️ [FAIL-OPEN] LLM lỗi tại '{node_path}' (skill '{single_skill}'): {e} -> tạm coi là RELEVANT (không prune).")
+        return True
 
 # =====================================================================
 # KHỐI 4: BỘ LỌC NGẮN MẠCH (SHORT-CIRCUIT EVALUATOR)

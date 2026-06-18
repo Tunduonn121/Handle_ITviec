@@ -3,6 +3,15 @@ import re
 from typing import Dict, List, Tuple
 from services.aliases import GLOBAL_ALIAS_MAP, clean_and_normalize
 
+def _safe_token_match(a: str, b: str) -> bool:
+    """Khớp an toàn: bằng nhau, hoặc a là 1 token/cụm độc lập trong b (không cắt giữa từ)."""
+    a, b = a.strip().lower(), b.strip().lower()
+    if a == b:
+        return True
+    # word-boundary tự chế, an toàn cho c#, c++, .net
+    pat = r'(?<![a-z0-9])' + re.escape(a) + r'(?![a-z0-9])'
+    return re.search(pat, b) is not None
+
 # =====================================================================
 # KHỐI 1: BỘ TỪ ĐIỂN ĐỒNG NGHĨA (ALIAS RESOLVER)
 # Mục đích: Tìm tất cả các "anh em họ hàng" của một kỹ năng. 
@@ -41,7 +50,7 @@ def find_matching_skill(skill_to_find: str, available_skills: Dict) -> Tuple:
         
         # Nếu trúng từ khóa và level cao hơn mức đang lưu thì cập nhật
         for term in search_terms:
-            if term == available_skill_lower or term in available_skill_lower or available_skill_lower in term:
+            if _safe_token_match(term, available_skill_lower):
                 if cv_lvl > best_match_level:
                     best_match_level = cv_lvl
                     best_match_name = available_skill

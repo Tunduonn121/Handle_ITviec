@@ -12,3 +12,11 @@ MODEL_NAME = "qwen3-coder:480b-cloud"
 # Cấu hình Database
 SQL_SERVER_NAME = r"LAPTOP-3MUGN234\TUNDUONN"
 SQL_DATABASE_NAME = "ITviecMini"
+
+from ollama import Client
+
+# Một Ollama Client dùng chung toàn hệ thống (tránh tạo trùng ở nhiều file)
+ollama_client = Client(
+    host=OLLAMA_HOST_URL,
+    headers={'Authorization': f'Bearer {OLLAMA_API_KEY}'}
+)

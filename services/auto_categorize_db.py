@@ -228,8 +228,6 @@ Trả về JSON:
                     if final_sub in subs:
                         return c_id, title, m_cat, final_sub
 
-                return c_id, title, final_cat, final_sub
-
         except Exception as e:
             print(f"   ⚠️ LLM lỗi (thử lại {attempt+1}/{max_retries}): {e}")
             time.sleep(2)

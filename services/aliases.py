@@ -1,3 +1,33 @@
+import re
+
+# Coi chữ/số/+/#/. là một phần của "từ" để 'c' không dính nhầm 'c#', 'c++'
+_SKILL_BOUNDARY = r'[a-z0-9+#.]'
+
+def _token_in(needle: str, haystack: str) -> bool:
+    """needle có xuất hiện như một token/cụm ĐỘC LẬP trong haystack không (không cắt giữa từ)."""
+    if not needle:
+        return False
+    pat = r'(?<!' + _SKILL_BOUNDARY + r')' + re.escape(needle) + r'(?!' + _SKILL_BOUNDARY + r')'
+    return re.search(pat, haystack) is not None
+
+def is_skill_match(a: str, b: str) -> bool:
+    """
+    HÀM SO KHỚP KỸ NĂNG DUY NHẤT của toàn hệ thống (Single Source of Truth).
+    Chuẩn hóa cả hai qua alias map, khớp khi: bằng nhau, HOẶC cái này là token độc lập trong cái kia.
+    An toàn cho c#, c++, .net; KHÔNG khớp nhầm java↔javascript, go↔django.
+    """
+    ca, cb = clean_and_normalize(a), clean_and_normalize(b)
+    if ca == cb:
+        return True
+    return _token_in(ca, cb) or _token_in(cb, ca)
+
+def is_level_fit(course_level: int, missing_levels: list) -> bool:
+    """Khóa có dạy đúng MỘT trong các level đang thiếu không."""
+    try:
+        return int(course_level) in set(missing_levels)
+    except (ValueError, TypeError):
+        return False
+
 # =====================================================================
 # BỘ TỪ ĐIỂN ALIAS TOÀN CỤC BỌC THÉP (GLOBAL ALIAS MAP) - VERSION KHÓA LUẬN
 # Định nghĩa duy nhất tại đây để tuân thủ nghiêm ngặt nguyên tắc DRY (Don't Repeat Yourself)
@@ -69,7 +99,7 @@ GLOBAL_ALIAS_MAP = {
     # DevOps, Cloud Platforms & CI/CD
     "kubernetes": "kubernetes",
     "k8s": "kubernetes",
-    "k8s": "kubernetes",
+   
     "aws": "aws",
     "amazon web services": "aws",
     "gcp": "gcp",
@@ -152,12 +182,11 @@ GLOBAL_ALIAS_MAP = {
     "containerization": "docker",
     "git": "git",
     "github": "git",
-    "gitlab": "git",
     "version control": "git",
     "devops": "devops",
-    "continuous integration": "ci/cd",
+    
     "continuous delivery": "ci/cd",
-    "continuous deployment": "ci/cd",
+    
 }
 
 def clean_and_normalize(skill_name: str) -> str:
