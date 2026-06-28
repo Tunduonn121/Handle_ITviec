@@ -236,7 +236,7 @@ def extract_course_details(driver, url):
 #         # ==========================================
 
 #         #1. Phân khu Backend (Lõi hệ thống)
-#         #new_keywords = ["Java", "C#", "C++", "Python",  "Java Backend", "Spring Boot", "Data Structures", "Object Oriented Programming"] # Nhập các từ khóa mới vào đây
+#         new_keywords = ["Java", "C#", "C++", "Python",  "Java Backend", "Spring Boot", "Data Structures", "Object Oriented Programming"] # Nhập các từ khóa mới vào đây
         
 #         #2. Phân khu Frontend (Giao diện)
 #         #new_keywords = ["React.js", "Angular", "Vue.js", "JavaScript", "TypeScript", "HTML CSS", "Tailwind CSS", "Front-End Web Development"]
@@ -257,12 +257,12 @@ def extract_course_details(driver, url):
 #         #new_keywords = ["System Design", "Microservices", "Software Architecture", "REST API", "Software Testing", "Agile Software Development"]
 
 #         #8. Phân khu An ninh mạng (Cybersecurity)
-#         new_keywords = ["Cybersecurity", "Ethical Hacking", "Network Security", "Information Security", "Penetration Testing", "Cyber Threat Intelligence", "Security Operations", "Cryptography"]
+#         # new_keywords = ["Cybersecurity", "Ethical Hacking", "Network Security", "Information Security", "Penetration Testing", "Cyber Threat Intelligence", "Security Operations", "Cryptography"]
 
 #         new_links = []
         
 #         for kw in new_keywords:
-#             links = crawl_course_links(driver, kw, num_scrolls=20)
+#             links = crawl_course_links(driver, kw, num_scrolls=40)
 #             new_links.extend(links)
             
 #         # Loại bỏ các link trùng lặp nội bộ trong mẻ cào mới này
@@ -307,6 +307,135 @@ def extract_course_details(driver, url):
 #     finally:
 #         driver.quit()
 
+# --- THỰC THI CHÍNH (CHẾ ĐỘ CÀO TÍCH LŨY + BACKUP CHỐNG RỚT MẠNG) ---
+if __name__ == "__main__":
+    driver = setup_driver()
+
+    output_file = r"data\raw_courses_massive.json"
+    backup_file = r"data\raw_courses_massive_backup.json"
+    SAVE_EVERY = 10  # cứ 10 khóa mới thì ghi backup 1 lần
+
+    existing_results = []
+    existing_urls = set()
+    new_results = []  # khai báo NGOÀI try để finally luôn thấy
+    completed = False
+    def _save(path, data):
+        """Ghi an toàn: ghi ra file .tmp rồi đổi tên -> tránh hỏng file nếu rớt ngay lúc ghi."""
+        import os as _os
+        tmp = path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+        _os.replace(tmp, path)  # thao tác đổi tên là nguyên tử trên cùng ổ đĩa
+
+    try:
+        # ========== BƯỚC 1: ĐỌC KHO CŨ ==========
+        if os.path.exists(output_file):
+            with open(output_file, "r", encoding="utf-8") as f:
+                try:
+                    existing_results = json.load(f)
+                    existing_urls = {c["url"] for c in existing_results}
+                    print(f"📦 KHO HIỆN TẠI: {len(existing_results)} khóa.")
+                except json.JSONDecodeError:
+                    print("⚠️ File cũ trống/lỗi, tạo mới từ đầu.")
+
+        # Nếu lần trước rớt giữa chừng, khôi phục từ backup (nếu backup nhiều hơn kho chính)
+        if os.path.exists(backup_file):
+            try:
+                with open(backup_file, "r", encoding="utf-8") as f:
+                    bak = json.load(f)
+                if len(bak) > len(existing_results):
+                    print(f"♻️ Phát hiện backup có {len(bak)} khóa (> kho chính). Khôi phục từ backup.")
+                    existing_results = bak
+                    existing_urls = {c["url"] for c in existing_results}
+            except json.JSONDecodeError:
+                pass
+
+                # ==========================================
+        # BƯỚC 2: CÀO LINK MỚI TỪ TỪ KHÓA MỚI
+        # ==========================================
+
+        #1. Phân khu Backend (Lõi hệ thống)
+        # new_keywords = ["Java", "C#", "C++", "Python",  "Java Backend", "Spring Boot", "Data Structures", "Object Oriented Programming"] # Nhập các từ khóa mới vào đây
+        
+        #2. Phân khu Frontend (Giao diện)
+        #new_keywords = ["React.js", "Angular", "Vue.js", "JavaScript", "TypeScript", "HTML CSS", "Tailwind CSS", "Front-End Web Development"]
+        
+        #3. Phân khu Data Science & AI (Xu hướng hiện tại)
+        #new_keywords = ["Machine Learning", "Deep Learning", "Artificial Intelligence", "Data Analytics", "Data Engineering", "Natural Language Processing", "Computer Vision"]
+        
+        #4. Phân khu Database (Lưu trữ)
+        #new_keywords=["SQL", "MySQL", "PostgreSQL", "NoSQL", "MongoDB", "Redis", "Database Design"]
+        
+        #5. Phân khu DevOps & Cloud 
+        #new_keywords = ["AWS", "Docker", "Kubernetes", "Google Cloud Platform", "Microsoft Azure", "CI/CD", "Linux System Administration", "DevOps"]
+
+        #6. Phân khu Mobile (Di động)
+        #new_keywords = ["Flutter", "React Native", "iOS Development", "Swift Programming", "Android Development", "Kotlin"]
+
+        #7.Phân khu Core CS & Architecture
+        #new_keywords = ["System Design", "Microservices", "Software Architecture", "REST API", "Software Testing", "Agile Software Development"]
+
+        #8. Phân khu An ninh mạng (Cybersecurity)
+        new_keywords = ["Cybersecurity", "Ethical Hacking", "Network Security", "Information Security", "Penetration Testing", "Cyber Threat Intelligence", "Security Operations", "Cryptography"]
+
+        new_links = []
+        for kw in new_keywords:
+            new_links.extend(crawl_course_links(driver, kw, num_scrolls=100))
+        unique_new_links = list(set(new_links))
+        print(f"\n🔍 Cào được {len(unique_new_links)} link. Đối chiếu bộ lọc...")
+
+        # ========== BƯỚC 3: CÀO CHI TIẾT + BACKUP ĐỊNH KỲ ==========
+        for idx, link in enumerate(unique_new_links, 1):
+            if link in existing_urls:
+                print(f" ⏭️ BỎ QUA (đã có): {link}")
+                continue
+            try:
+                details = extract_course_details(driver, link)
+            except Exception as e:
+                print(f"   ⚠️ Lỗi cào 1 khóa ({e}), bỏ qua khóa này, tiếp tục.")
+                continue
+            if details and details["target_skills"]:
+                new_results.append(details)
+                existing_urls.add(link)
+
+            # ⭐ BACKUP ĐỊNH KỲ: cứ SAVE_EVERY khóa thì ghi tạm (kho cũ + phần mới tới giờ)
+            if len(new_results) > 0 and len(new_results) % SAVE_EVERY == 0:
+                _save(backup_file, existing_results + new_results)
+                print(f"   💾 [BACKUP] Đã lưu tạm {len(existing_results) + len(new_results)} khóa "
+                      f"vào {backup_file} (sau {idx}/{len(unique_new_links)} link).")
+
+            time.sleep(1.5)
+
+        # ========== BƯỚC 4: GỘP & GHI KHO CHÍNH ==========
+        if new_results:
+            final_results = existing_results + new_results
+            _save(output_file, final_results)
+            print(f"\n🎉 THÀNH CÔNG! Cào thêm {len(new_results)} khóa mới.")
+            print(f"📈 TỔNG KHO: {len(final_results)} khóa.")
+            # Xóa backup vì đã ghi chính thức an toàn
+            if os.path.exists(backup_file):
+                os.remove(backup_file)
+                print("🧹 Đã xóa file backup (kho chính đã an toàn).")
+            completed = True   # ⭐ đánh dấu đã xong, finally khỏi cứu hộ
+        else:
+            print("\n🤷 Mẻ này không thu được khóa mới nào.")
+            completed = True   # ⭐ không có gì mới cũng coi như xong
+
+    except KeyboardInterrupt:
+        print("\n⛔ BẠN DỪNG THỦ CÔNG (Ctrl+C).")
+    except Exception as e:
+        print(f"\n❌ LỖI/RỚT MẠNG GIỮA CHỪNG: {e}")
+    finally:
+        # CHỈ cứu hộ khi rớt GIỮA CHỪNG (chưa hoàn tất BƯỚC 4)
+        if not completed and new_results:
+            _save(backup_file, existing_results + new_results)
+            print(f"🛟 [CỨU HỘ] Đã lưu {len(existing_results) + len(new_results)} khóa vào {backup_file}.")
+            print(f"   -> Lần sau chạy lại, script sẽ TỰ khôi phục từ backup này.")
+        try:
+            driver.quit()
+        except Exception:
+            pass
+
 
 # main bóc tách level từ coursera
 # if __name__ == "__main__":
@@ -337,19 +466,19 @@ def extract_course_details(driver, url):
 
 #test trashword
 
-if __name__ == "__main__":
-    # --- TEST LỌC RÁC SKILL (không cần Selenium) ---
-    SHOULD_KEEP = ["Machine Learning", "Deep Learning", "Threading",
-                   "Multithreading", "Low-level Programming", "Tooling", "React"]
-    SHOULD_DROP = ["Skill", "Tools", "Review", "Learn", "Level",
-                   "Coursera", "Show all", "View all"]
+# if __name__ == "__main__":
+#     # --- TEST LỌC RÁC SKILL (không cần Selenium) ---
+#     SHOULD_KEEP = ["Machine Learning", "Deep Learning", "Threading",
+#                    "Multithreading", "Low-level Programming", "Tooling", "React"]
+#     SHOULD_DROP = ["Skill", "Tools", "Review", "Learn", "Level",
+#                    "Coursera", "Show all", "View all"]
 
-    print("✅ PHẢI GIỮ LẠI (không được loại):")
-    for s in SHOULD_KEEP:
-        flag = "❌ BỊ LOẠI OAN" if is_trash_skill(s) else "🟢 giữ"
-        print(f"   {flag:<14} {s}")
+#     print("✅ PHẢI GIỮ LẠI (không được loại):")
+#     for s in SHOULD_KEEP:
+#         flag = "❌ BỊ LOẠI OAN" if is_trash_skill(s) else "🟢 giữ"
+#         print(f"   {flag:<14} {s}")
 
-    print("\n🗑️  PHẢI LOẠI (rác):")
-    for s in SHOULD_DROP:
-        flag = "🟢 loại đúng" if is_trash_skill(s) else "❌ LỌT RÁC"
-        print(f"   {flag:<14} {s}")
+#     print("\n🗑️  PHẢI LOẠI (rác):")
+#     for s in SHOULD_DROP:
+#         flag = "🟢 loại đúng" if is_trash_skill(s) else "❌ LỌT RÁC"
+#         print(f"   {flag:<14} {s}")

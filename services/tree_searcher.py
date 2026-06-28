@@ -1,149 +1,118 @@
 import json
-import re
-import os
-
-
-from .tree_builder import load_courses_from_sql, build_course_tree
+from services.aliases import is_skill_match, clean_and_normalize
 from core.config import ollama_client as client, MODEL_NAME
-# =====================================================================
-# KHỐI 1: KHỞI TẠO MÔI TRƯỜNG VÀ KẾT NỐI LLM
-# =====================================================================
 
 # =====================================================================
-# KHỐI 2: KHỞI TẠO BỘ NHỚ ĐỆM TỐI ƯU HÓA (MICRO-PRUNING CACHE)
-# Mục đích: Lưu trữ kết quả đánh giá của LLM trên RAM để đạt độ trễ O(1).
-# Khắc phục triệt để bài toán tốn tiền API và giảm thời gian chờ.
+# CON ĐƯỜNG 1: DFS PRUNE XÁC ĐỊNH (skill-set precompute) + TÙY CHỌN LLM
+# ĐỊNH TUYẾN NGỮ NGHĨA Ở TẦNG CATEGORY.
+#
+# - Tầng Category & Subcategory: prune bằng phép GIAO skill-set (KHÔNG gọi LLM)
+#   -> chính xác, miễn phí, không hallucinate, không rate limit.
+# - (TÙY CHỌN) Nếu use_llm_routing=True: khi 1 Category bị deterministic loại,
+#   hỏi LLM xem Category đó có liên quan ngữ nghĩa không (bù từ vựng alias bỏ sót).
+#   Chỉ ~1 lời gọi/Category bị-miss -> rất ít, khó đụng rate limit.
 # =====================================================================
-# Bộ nhớ đệm lưu vết toàn cục nằm trên RAM
-MICRO_PRUNING_CACHE = {}
+
+# Cache cho lớp LLM định tuyến (chỉ dùng khi bật use_llm_routing)
+LLM_ROUTING_CACHE = {}
 
 def clear_pruning_cache():
-    """Xóa cache khi cây được nạp lại (hot-reload) để tránh quyết định prune dựa trên dữ liệu cũ."""
-    global MICRO_PRUNING_CACHE
-    MICRO_PRUNING_CACHE = {}
-    print("🧹 [CACHE] Đã xóa MICRO_PRUNING_CACHE do cây được nạp lại.")
-# =====================================================================
-# KHỐI 3: HÀM ĐÁNH GIÁ VÀ LƯU CACHE (SINGLE SKILL EVALUATOR)
-# Mục đích: Hỏi AI xem nhánh hiện tại (VD: "Backend") có dạy môn 
-# đang xét (VD: "Docker") không. Nếu đã hỏi rồi thì móc từ Cache ra dùng.
-# =====================================================================
-def evaluate_single_skill_on_node(node_path: str, single_skill: str) -> bool:
-    """Hỏi AI một kỹ năng duy nhất và lưu cache cứng cho kỹ năng đó tại Node này"""
-    global MICRO_PRUNING_CACHE # KHAI BÁO Ở ĐẦU HÀM DUY NHẤT LÀ ĐỦ!
-    
-    if node_path not in MICRO_PRUNING_CACHE:
-        MICRO_PRUNING_CACHE[node_path] = {}
-        
-    skill_clean = single_skill.lower().strip()
-    
-    # ⚡ NẾU ĐÃ CÓ TRONG CACHE (CACHE HIT): Trả về kết quả ngay lập tức (Tốc độ O(1))
-    if skill_clean in MICRO_PRUNING_CACHE[node_path]:
-        return MICRO_PRUNING_CACHE[node_path][skill_clean]
-        
-    # 🌐 NẾU CHƯA CÓ (CACHE MISS): Gọi LLM Qwen-480B phân tích ngữ nghĩa
-    prompt = f"""Quyết định xem danh mục "{node_path}" có chứa khóa học dạy về kỹ năng "{single_skill}" hay không.
-Trả lời một chữ duy nhất: YES hoặc NO.
-"""
+    """Xóa cache khi cây được nạp lại (hot-reload)."""
+    global LLM_ROUTING_CACHE
+    LLM_ROUTING_CACHE = {}
+    print("🧹 [CACHE] Đã xóa LLM_ROUTING_CACHE do cây được nạp lại.")
+
+
+def _gap_hits_skillset(gap_dict, node_skills):
+    """XÁC ĐỊNH: gap có giao với skill-set (đã precompute & chuẩn hóa) của nhánh không."""
+    for gap_skill in gap_dict.keys():
+        g = clean_and_normalize(gap_skill)
+        for ns in node_skills:
+            if is_skill_match(g, ns):
+                return True
+    return False
+
+
+def _llm_category_relevant(category_name, gap_skills):
+    """TÙY CHỌN: hỏi LLM xem Category có liên quan ngữ nghĩa tới gap không (1 lời gọi, có cache)."""
+    cache_key = category_name.lower().strip()
+    if cache_key in LLM_ROUTING_CACHE:
+        return LLM_ROUTING_CACHE[cache_key]
+
+    skills_str = ", ".join(gap_skills)
+    prompt = (
+        f'Danh mục khóa học: "{category_name}".\n'
+        f'Người dùng đang thiếu các kỹ năng: {skills_str}.\n'
+        f'Danh mục này có khả năng chứa khóa học dạy MỘT TRONG các kỹ năng đó không? '
+        f'Chỉ trả lời một từ: YES hoặc NO.'
+    )
     try:
         response = client.chat(
             model=MODEL_NAME, messages=[{'role': 'user', 'content': prompt}],
-            stream=False, options={'temperature': 0.0} # Nhiệt độ 0.0 để đảm bảo tính Tất định (Deterministic)
+            stream=False, options={'temperature': 0.0}
         )
+        import re
         answer = response['message']['content'].strip().upper()
         result = bool(re.search(r'\bYES\b', answer))
-        
-        # ĐÃ XÓA DÒNG GLOBAL BỊ LỖI Ở ĐÂY
-        # Lưu kết quả vừa gọi API vào Cache để lần sau không phải gọi nữa
-        MICRO_PRUNING_CACHE[node_path][skill_clean] = result
+        LLM_ROUTING_CACHE[cache_key] = result
         return result
     except Exception as e:
-        print(f"   ⚠️ [FAIL-OPEN] LLM lỗi tại '{node_path}' (skill '{single_skill}'): {e} -> tạm coi là RELEVANT (không prune).")
-        return True
+        print(f"   ⚠️ [FAIL-OPEN] LLM định tuyến lỗi ở '{category_name}': {e} -> coi là RELEVANT.")
+        return True  # KHÔNG cache lỗi
 
-# =====================================================================
-# KHỐI 4: BỘ LỌC NGẮN MẠCH (SHORT-CIRCUIT EVALUATOR)
-# Mục đích: Duyệt qua danh sách Lỗ hổng (Gap). Chỉ cần 1 môn khớp với 
-# nhánh này là lập tức trả về True (Mở khóa nhánh) để đi sâu vào trong.
-# =====================================================================
-def real_llm_evaluate(node_path, gap_dict):
-    """
-    Hàm gác cổng cải tiến: Duyệt qua từng môn trong đống Gap của User.
-    Chỉ cần 1 môn báo YES (được lưu từ trước hoặc vừa hỏi xong) là MỞ KHÓA NHÁNH.
-    """
-    missing_skills = list(gap_dict.keys())
-    
-    for skill in missing_skills:
-        # Cơ chế Short-circuit: Vừa gặp 1 cái True là return cắt luồng ngay lập tức
-        if evaluate_single_skill_on_node(node_path, skill):
-            print(f"   🎯 [CACHE HIT] Phát hiện môn '{skill}' nằm trong nhánh [{node_path}]!")
-            return True
-            
-    # Nếu duyệt hết các môn hổng mà AI bảo KHÔNG -> Cắt tỉa (Prune) toàn bộ nhánh này
-    return False
 
-# =====================================================================
-# KHỐI 5: THUẬT TOÁN DUYỆT CÂY (DEPTH-FIRST SEARCH - DFS)
-# Mục đích: Duyệt Cây Khóa học từ trên xuống dưới bằng thuật toán DFS.
-# Kết hợp với LLM để quyết định đi tiếp hay "cắt tỉa" nhánh đó đi.
-# =====================================================================
-def dfs_tree_search(course_tree, gap_dict):
-    global MICRO_PRUNING_CACHE
-    print(f"\n🧠 [HỆ THỐNG] Kích thước Cache hiện tại: {len(MICRO_PRUNING_CACHE)} nhánh đã quét.")
-    
-    # Khởi tạo Stack cho DFS thay vì dùng Đệ quy (Giúp chống tràn bộ nhớ)
-    stack = [(cat_name, cat_content) for cat_name, cat_content in course_tree.items()]
+def dfs_tree_search(course_tree, gap_dict, use_llm_routing=False):
+    """
+    Duyệt cây (DFS theo Category -> Subcategory), prune bằng skill-set xác định.
+    Trả về danh sách khóa học ứng viên (course_info dict) cho bước ranking.
+    """
     candidate_courses = []
+    gap_skills = list(gap_dict.keys())
 
-    print(f"\n🚀 BẮT ĐẦU DUYỆT CÂY DFS VỚI LLM PRUNING")
-    print(f"🎯 Kỹ năng cần tìm ({len(gap_dict)} skills)")
-    
-    while stack:
-        current_node_path, current_node_content = stack.pop()
-        
-        # Hỏi LLM xem nhánh này có đáng để đi sâu vào không
-        is_relevant = real_llm_evaluate(current_node_path, gap_dict)
-        
-        # Nếu nhánh này tiềm năng (is_relevant == True)
-        if is_relevant:
-            if isinstance(current_node_content, list):
-                # Đã đến Tầng cuối (Lá) -> Hốt trọn mảng Khóa học
-                candidate_courses.extend(current_node_content)
-            else:
-                # Vẫn ở Tầng trung gian -> Đẩy các node con vào Stack để đi tiếp
-                for sub_name, sub_content in current_node_content.items():
-                    stack.append((f"{current_node_path} -> {sub_name}", sub_content))
-                    
-    # Trả về không gian tìm kiếm đã được thu hẹp tối đa
+    for cat, cat_node in course_tree.items():
+        det_hit = _gap_hits_skillset(gap_dict, cat_node["_skills"])
+
+        if det_hit:
+            # Category liên quan (xác định) -> prune CHẶT ở tầng Subcategory (2 tầng)
+            for sub_node in cat_node["_subs"].values():
+                if _gap_hits_skillset(gap_dict, sub_node["_skills"]):
+                    candidate_courses.extend(sub_node["_courses"])
+
+        elif use_llm_routing and _llm_category_relevant(cat, gap_skills):
+            # Deterministic MISS nhưng LLM bảo có liên quan ngữ nghĩa
+            # -> gom CẢ Category (1 tầng) để không bỏ sót khớp ngữ nghĩa.
+            # (Ranker sẽ lọc tinh lại bằng is_skill_match sau.)
+            print(f"   🧭 [LLM-ROUTE] Category '{cat}' được giữ nhờ định tuyến ngữ nghĩa.")
+            for sub_node in cat_node["_subs"].values():
+                candidate_courses.extend(sub_node["_courses"])
+
     return candidate_courses
 
-# =====================================================================
-# KHỐI 6: KIỂM THỬ ĐO LƯỜNG HIỆU NĂNG (BENCHMARKING)
-# =====================================================================
-# --- TEST HỆ THỐNG TOÀN DIỆN ---
+
 if __name__ == "__main__":
-    print("⏳ Đang tải Database và xây Cây 3 Tầng...")
-    flat_data = load_courses_from_sql()
-    
-    if not flat_data:
-        print("❌ Cây rỗng! Hãy kiểm tra lại Database.")
-        exit()
-        
-    tree = build_course_tree(flat_data)
-    print("✅ Cây đã sẵn sàng trên RAM!")
-    
-    user_gap = {
-        'Docker': [1, 2], 
-        'CI/CD': [2]
+    # ===== TEST LOGIC PRUNE BẰNG CÂY GIẢ (không cần DB/LLM) =====
+    fake_tree = {
+        "DevOps": {
+            "_skills": {"docker", "kubernetes", "ci/cd"},
+            "_subs": {
+                "Containers": {"_skills": {"docker", "kubernetes"},
+                               "_courses": [{"course_id": "C1", "title": "Docker 101", "level": 1, "target_skills": ["Docker"]}]},
+                "Pipelines": {"_skills": {"ci/cd"},
+                              "_courses": [{"course_id": "C2", "title": "CI/CD", "level": 2, "target_skills": ["CI/CD"]}]},
+            },
+        },
+        "Frontend": {
+            "_skills": {"reactjs", "javascript"},
+            "_subs": {
+                "React": {"_skills": {"reactjs"},
+                          "_courses": [{"course_id": "C3", "title": "React", "level": 2, "target_skills": ["ReactJS"]}]},
+            },
+        },
     }
-    
-    print("\n" + "="*50)
-    print("🕒 LẦN 1: BẮT ĐẦU COLD START (GỌI API)")
-    print("="*50)
-    # Lần 1: Cache trống rỗng, bắt buộc phải gọi API tốn thời gian
-    found_courses_1 = dfs_tree_search(tree, user_gap)
-    
-    print("\n" + "="*50)
-    print("⚡ LẦN 2: CHẠY LẠI VỚI BỘ NHỚ ĐỆM CACHE")
-    print("="*50)
-    # Lần 2: Cache đã đầy, tốc độ trả về sẽ là tức thời O(1)
-    found_courses_2 = dfs_tree_search(tree, user_gap)
+    gap = {"docker": [1, 2]}
+    res = dfs_tree_search(fake_tree, gap, use_llm_routing=False)
+    print("Gap = Docker. Khóa ứng viên (chỉ nên có C1 từ sub 'Containers'):")
+    for c in res:
+        print(f"  {c['course_id']} - {c['title']}")
+    assert {c["course_id"] for c in res} == {"C1"}, "SAI: prune không đúng!"
+    print("✅ Prune xác định đúng: chỉ lấy sub 'Containers', bỏ 'Pipelines' và cả 'Frontend'.")

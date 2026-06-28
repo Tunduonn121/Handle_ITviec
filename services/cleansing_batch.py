@@ -1,6 +1,7 @@
 import re
 import sys
 import argparse
+import json
 from services.aliases import GLOBAL_ALIAS_MAP
 
 # Sắp key theo độ dài giảm dần: key cụ thể (dài) được ưu tiên khớp trước

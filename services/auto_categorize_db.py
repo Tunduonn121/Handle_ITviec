@@ -25,7 +25,7 @@ MODEL_NAME = 'qwen3-coder:480b-cloud'
 SERVER_NAME = r'LAPTOP-3MUGN234\TUNDUONN'
 DATABASE_NAME = 'ITviecMini'
 
-MAX_WORKERS = 2 # Số lượng luồng chạy song song để tối ưu tốc độ gọi API
+MAX_WORKERS = 1 # Số lượng luồng chạy song song để tối ưu tốc độ gọi API
 RESET_DATABASE_TREE = False # Công tắc: Có xóa toàn bộ Cây cũ để xây lại từ đầu không?
 
 # =====================================================================
@@ -230,7 +230,7 @@ Trả về JSON:
 
         except Exception as e:
             print(f"   ⚠️ LLM lỗi (thử lại {attempt+1}/{max_retries}): {e}")
-            time.sleep(2)
+            time.sleep(15)
 
     # Fallback nếu LLM bó tay
     # Subcategory KHÔNG thuộc taxonomy -> KHÔNG nhận nhãn bịa, ép review tay

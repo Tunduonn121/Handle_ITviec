@@ -6,15 +6,6 @@ import time
 from skill_extractor import extract_skills_from_jd, extract_skills_from_cv
 from skill_gap_calculator import compute_skill_gap, get_gap_summary
 
-def _safe_token_match(a: str, b: str) -> bool:
-    """Khớp an toàn: bằng nhau, hoặc a là 1 token/cụm độc lập trong b (không cắt giữa từ)."""
-    a, b = a.strip().lower(), b.strip().lower()
-    if a == b:
-        return True
-    # word-boundary tự chế, an toàn cho c#, c++, .net
-    pat = r'(?<![a-z0-9])' + re.escape(a) + r'(?![a-z0-9])'
-    return re.search(pat, b) is not None
-
 def run_e2e_test():
     print("="*80)
     print("🚀 BẮT ĐẦU TEST LIÊN HOÀN (END-TO-END PIPELINE) 🚀")
