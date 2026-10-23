@@ -1,10 +1,29 @@
 import json
 import os
 import re
+from time import time
 from services.aliases import GLOBAL_ALIAS_MAP, is_skill_match, is_level_fit, clean_and_normalize
 
 from core.config import ollama_client as client, MODEL_NAME
+_NORM_CACHE = {}
 
+def _normalize_course_skill(c_s):
+    cached = _NORM_CACHE.get(c_s)
+    if cached is not None:
+        return cached
+    res = set()
+    for k, v in GLOBAL_ALIAS_MAP.items():
+        if is_skill_match(k, c_s) or is_skill_match(v, c_s):
+            res.add(k)
+    res.add(c_s)
+    _NORM_CACHE[c_s] = res
+    return res
+
+from functools import lru_cache
+
+@lru_cache(maxsize=20000)
+def _cn(s):                     # clean_and_normalize có cache
+    return clean_and_normalize(s)
 # =====================================================================
 # KHỐI 3: TÌM KHÓA COMBO (ĐA KỸ NĂNG) — giữ nguyên
 # =====================================================================
@@ -16,11 +35,7 @@ def find_combo_courses(candidate_courses, gap_dict):
         c_skills_raw = [s.lower().replace("/", " ").replace("-", " ") for s in course.get("target_skills", [])]
         c_skills_normalized = set()
         for c_s in c_skills_raw:
-            for k, v in GLOBAL_ALIAS_MAP.items():
-                if is_skill_match(k, c_s) or is_skill_match(v, c_s):
-                    c_skills_normalized.add(k)
-            c_skills_normalized.add(c_s)
-
+            c_skills_normalized |= _normalize_course_skill(c_s)   # ← dùng cache
         overlap = gap_skills.intersection(c_skills_normalized)
         coverage_score = len(overlap)
         if coverage_score >= 2:
@@ -48,6 +63,7 @@ def _relevance_score(course, gap_skill, gap_dict):
     """
     title = (course.get("title", "") or "").lower()
     c_skills = course.get("target_skills", [])
+    c_norm = [_cn(s) for s in c_skills]  
     gap_clean = clean_and_normalize(gap_skill)
 
     # (1) skill gap (hoặc alias của nó) xuất hiện trong TIÊU ĐỀ -> mạnh nhất
@@ -59,7 +75,7 @@ def _relevance_score(course, gap_skill, gap_dict):
     gap_hit = 0
     for g in gap_dict.keys():
         gn = clean_and_normalize(g)
-        if any(is_skill_match(gn, clean_and_normalize(s)) for s in c_skills):
+        if any(is_skill_match(gn, s) for s in c_norm): 
             gap_hit += 1
 
     # (3) tỷ lệ skill gap / tổng skill (khóa càng chuyên về gap càng cao)
@@ -82,8 +98,8 @@ def group_courses_by_gap(candidate_courses, gap_dict):
                 search_term = GLOBAL_ALIAS_MAP.get(gap_skill_lower, gap_skill_lower)
                 search_term_clean = search_term.replace("/", " ").replace("-", " ")
 
-                skill_ok = any(is_skill_match(search_term_clean, s.lower().replace("/", " ").replace("-", " ")) for s in c_skills)
-
+                skill_ok = any(is_skill_match(_cn(search_term_clean), _cn(s)) for s in c_skills)
+                
                 # Chỉ nhận khóa ĐÚNG level của mốc (chặt) -> giữ khóa chuyên, không loãng pool.
                 if skill_ok and c_lvl == req_level:
                     lite_course = {
@@ -149,9 +165,13 @@ def evaluate_ai_result(course, expected_step_name, gap_dict):
 # =====================================================================
 def rank_courses_with_llm(candidate_courses, gap_dict, top_k=10):
     print("🔍 Đang tìm kiếm các Khóa học Combo (Đa kỹ năng)...")
+    import time
+    _t=time.time();
     combo_results = find_combo_courses(candidate_courses, gap_dict)
-
+    print(f"⏱️ combo took {time.time()-_t:.2f}s")
+    _t=time.time();
     path_blueprint = group_courses_by_gap(candidate_courses, gap_dict)
+    print(f"⏱️ group took {time.time()-_t:.2f}s")
     if not path_blueprint:
         return {"combo_courses": combo_results, "regular_courses": []}
 

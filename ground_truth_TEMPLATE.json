@@ -6504,7 +6504,7 @@
           "Diagram Design"
         ],
         "_source": "sample",
-        "label": "1 "
+        "label": "1"
       }
     }
   },
@@ -8609,7 +8609,7 @@
           "Server Side"
         ],
         "_source": "sample",
-        "label": "00"
+        "label": "0"
       },
       "C5441": {
         "title": "Continuous Integration and Deployment with ASP.NET Core",

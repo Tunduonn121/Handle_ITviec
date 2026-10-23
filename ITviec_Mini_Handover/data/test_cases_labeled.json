@@ -1,0 +1,254 @@
+[
+  {
+    "task_id": "task_001",
+    "domain": "DevOps",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên DevOps. Có kinh nghiệm aws. Nắm vững jenkins. Sử dụng tốt docker.",
+    "jd_text": "Tuyển DevOps. Thành thạo CI/CD. Sử dụng tốt Terraform. Nắm vững Linux."
+  },
+  {
+    "task_id": "task_002",
+    "domain": "Cloud",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Cloud. Có tìm hiểu docker. Có kinh nghiệm gcp. Sử dụng tốt terraform.",
+    "jd_text": "Tuyển Cloud. Yêu cầu 1-2 năm làm việc với ReactJS hoặc VueJS. Nắm vững Terraform. Yêu cầu 1-2 năm làm việc với Docker. Chuyên gia về GCP."
+  },
+  {
+    "task_id": "task_003",
+    "domain": "Security",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Security. Biết cơ bản python. Từng dùng network security ở mức cơ bản. Có tìm hiểu linux. Có tìm hiểu cryptography.",
+    "jd_text": "Tuyển Security. Chuyên gia về Python. Yêu cầu tối thiểu 3 năm kinh nghiệm Network Security. Nắm vững Linux. Nắm vững Cryptography."
+  },
+  {
+    "task_id": "task_004",
+    "domain": "Frontend Vue",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên Frontend Vue. Nắm vững vue.js. Từng làm dự án với typescript.",
+    "jd_text": "Tuyển Frontend Vue. Nắm vững Vuex. Có kinh nghiệm JavaScript. Có kinh nghiệm Nuxt.js."
+  },
+  {
+    "task_id": "task_005",
+    "domain": "Architecture",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Architecture. Từng dùng docker ở mức cơ bản. Mới làm quen microservices.",
+    "jd_text": "Tuyển Architecture. Chuyên gia về Docker. Có kinh nghiệm Java/Node.js/Python. Chuyên gia về Microservices."
+  },
+  {
+    "task_id": "task_006",
+    "domain": "Frontend React",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Frontend React. Có tìm hiểu next.js. Có tìm hiểu reactjs. Mới làm quen javascript. Có tìm hiểu redux.",
+    "jd_text": "Tuyển Frontend React. Nắm vững Next.js. Yêu cầu tối thiểu 3 năm kinh nghiệm ReactJS. Yêu cầu tối thiểu 3 năm kinh nghiệm JavaScript. Thành thạo Redux."
+  },
+  {
+    "task_id": "task_007",
+    "domain": "Data/AI",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên Data/AI. Từng làm dự án với machine learning. Từng làm dự án với deep learning. Có kinh nghiệm sql.",
+    "jd_text": "Tuyển Data/AI. Có kinh nghiệm Python. Có kinh nghiệm TensorFlow."
+  },
+  {
+    "task_id": "task_008",
+    "domain": "Data/AI",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Data/AI. 2 năm kinh nghiệm machine learning. Từng dùng tensorflow ở mức cơ bản.",
+    "jd_text": "Tuyển Data/AI. Có kinh nghiệm TensorFlow. Có kinh nghiệm Machine Learning. Sử dụng tốt Angular hoặc React."
+  },
+  {
+    "task_id": "task_009",
+    "domain": "Data/AI",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Data/AI. Từng dùng deep learning ở mức cơ bản. Mới làm quen pytorch. Mới làm quen python. Có tìm hiểu tensorflow.",
+    "jd_text": "Tuyển Data/AI. Chuyên gia về Deep Learning. Chuyên gia về PyTorch. Chuyên gia về Python. Nắm vững TensorFlow."
+  },
+  {
+    "task_id": "task_010",
+    "domain": "Architecture",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên Architecture. Nắm vững kubernetes. 2 năm kinh nghiệm microservices. Thành thạo system design.",
+    "jd_text": "Tuyển Architecture. Sử dụng tốt Docker. Thành thạo Kafka."
+  },
+  {
+    "task_id": "task_011",
+    "domain": "Backend Python",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Backend Python. 2 năm kinh nghiệm django. Sử dụng tốt python. Có tìm hiểu fastapi.",
+    "jd_text": "Tuyển Backend Python. Yêu cầu 1-2 năm làm việc với AWS, Azure hoặc GCP. Yêu cầu 1-2 năm làm việc với Django. Có kinh nghiệm Python. Có kinh nghiệm FastAPI."
+  },
+  {
+    "task_id": "task_012",
+    "domain": "Frontend Vue",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Frontend Vue. Biết cơ bản vue.js. Biết cơ bản typescript. Biết cơ bản javascript.",
+    "jd_text": "Tuyển Frontend Vue. Yêu cầu tối thiểu 3 năm kinh nghiệm Vue.js. Chuyên gia về TypeScript. Nắm vững JavaScript."
+  },
+  {
+    "task_id": "task_013",
+    "domain": "Cloud",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên Cloud. Hơn 3 năm kinh nghiệm kubernetes. Sử dụng tốt azure. Từng làm dự án với gcp.",
+    "jd_text": "Tuyển Cloud. Yêu cầu 1-2 năm làm việc với Docker. Sử dụng tốt AWS."
+  },
+  {
+    "task_id": "task_014",
+    "domain": "Mobile",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Mobile. Biết cơ bản react native. Mới làm quen flutter.",
+    "jd_text": "Tuyển Mobile. Chuyên gia về React Native. Có kinh nghiệm TensorFlow hoặc PyTorch. Sử dụng tốt Flutter."
+  },
+  {
+    "task_id": "task_016",
+    "domain": "Database",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên Database. Hơn 3 năm kinh nghiệm mysql. Nắm vững sql server. Sử dụng tốt mongodb.",
+    "jd_text": "Tuyển Database. Nắm vững Redis. Sử dụng tốt PostgreSQL. Yêu cầu 1-2 năm làm việc với Oracle."
+  },
+  {
+    "task_id": "task_020",
+    "domain": "Frontend Vue",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Frontend Vue. Từng dùng vuex ở mức cơ bản. Từng dùng nuxt.js ở mức cơ bản. Có tìm hiểu vue.js.",
+    "jd_text": "Tuyển Frontend Vue. Có kinh nghiệm Selenium hoặc Cypress. Yêu cầu 1-2 năm làm việc với Vue.js. Có kinh nghiệm Nuxt.js. Nắm vững Vuex."
+  },
+  {
+    "task_id": "task_021",
+    "domain": "Backend Java",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Backend Java. Mới làm quen java. Biết cơ bản rest api. Từng dùng redis ở mức cơ bản. Có tìm hiểu microservices.",
+    "jd_text": "Tuyển Backend Java. Chuyên gia về Java. Chuyên gia về REST API. Yêu cầu tối thiểu 3 năm kinh nghiệm Redis. Chuyên gia về Microservices."
+  },
+  {
+    "task_id": "task_023",
+    "domain": "Backend Java",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Backend Java. Có tìm hiểu microservices. Sử dụng tốt spring boot. Sử dụng tốt hibernate.",
+    "jd_text": "Tuyển Backend Java. Sử dụng tốt Microservices. Yêu cầu 1-2 năm làm việc với Selenium hoặc Cypress. Sử dụng tốt Spring Boot. Nắm vững Hibernate."
+  },
+  {
+    "task_id": "task_025",
+    "domain": "Backend Node",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên Backend Node. Nắm vững expressjs. Có kinh nghiệm graphql. Từng làm dự án với rest api.",
+    "jd_text": "Tuyển Backend Node. Yêu cầu 1-2 năm làm việc với Node.js. Yêu cầu 1-2 năm làm việc với TypeScript. Chuyên gia về MongoDB."
+  },
+  {
+    "task_id": "task_028",
+    "domain": "QA/Testing",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên QA/Testing. 2 năm kinh nghiệm cypress. Thành thạo python.",
+    "jd_text": "Tuyển QA/Testing. Yêu cầu 1-2 năm làm việc với Selenium. Có kinh nghiệm REST API."
+  },
+  {
+    "task_id": "task_030",
+    "domain": "DevOps",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên DevOps. Biết cơ bản jenkins. Biết cơ bản linux. Mới làm quen terraform. Biết cơ bản docker.",
+    "jd_text": "Tuyển DevOps. Thành thạo Jenkins. Nắm vững Linux. Thành thạo Terraform. Thành thạo Docker."
+  },
+  {
+    "task_id": "task_032",
+    "domain": "Backend Node",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Backend Node. Từng làm dự án với graphql. Có kinh nghiệm rest api. 2 năm kinh nghiệm typescript.",
+    "jd_text": "Tuyển Backend Node. Sử dụng tốt Docker hoặc Kubernetes. Sử dụng tốt TypeScript. Yêu cầu 1-2 năm làm việc với REST API. Yêu cầu tối thiểu 3 năm kinh nghiệm GraphQL."
+  },
+  {
+    "task_id": "task_033",
+    "domain": "Backend .NET",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Backend .NET. Mới làm quen entity framework. Mới làm quen c#. Mới làm quen sql server. Mới làm quen azure.",
+    "jd_text": "Tuyển Backend .NET. Yêu cầu tối thiểu 3 năm kinh nghiệm Entity Framework. Yêu cầu tối thiểu 3 năm kinh nghiệm C#. Nắm vững SQL Server. Nắm vững Azure."
+  },
+  {
+    "task_id": "task_034",
+    "domain": "Backend Python",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên Backend Python. Sử dụng tốt rest api. Sử dụng tốt django. Từng làm dự án với fastapi.",
+    "jd_text": "Tuyển Backend Python. Chuyên gia về Python. Thành thạo PostgreSQL. Yêu cầu tối thiểu 3 năm kinh nghiệm Celery."
+  },
+  {
+    "task_id": "task_037",
+    "domain": "Frontend Angular",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên Frontend Angular. Chuyên sâu angular. Hơn 3 năm kinh nghiệm javascript.",
+    "jd_text": "Tuyển Frontend Angular. Nắm vững RxJS. Chuyên gia về TypeScript."
+  },
+  {
+    "task_id": "task_038",
+    "domain": "Backend .NET",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Backend .NET. Biết cơ bản sql server. Có tìm hiểu entity framework.",
+    "jd_text": "Tuyển Backend .NET. Có kinh nghiệm Entity Framework. Có kinh nghiệm Docker hoặc Kubernetes. Có kinh nghiệm SQL Server."
+  },
+  {
+    "task_id": "task_039",
+    "domain": "Cloud",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Cloud. Biết cơ bản gcp. Từng dùng terraform ở mức cơ bản. Từng dùng aws ở mức cơ bản.",
+    "jd_text": "Tuyển Cloud. Chuyên gia về GCP. Yêu cầu tối thiểu 3 năm kinh nghiệm Terraform. Thành thạo AWS."
+  },
+  {
+    "task_id": "task_040",
+    "domain": "Backend .NET",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên Backend .NET. Có kinh nghiệm c#. 2 năm kinh nghiệm entity framework. Thành thạo .net core.",
+    "jd_text": "Tuyển Backend .NET. Sử dụng tốt SQL Server. Sử dụng tốt LINQ. Nắm vững REST API."
+  },
+  {
+    "task_id": "task_041",
+    "domain": "Frontend Angular",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Frontend Angular. 2 năm kinh nghiệm rxjs. Có tìm hiểu angular.",
+    "jd_text": "Tuyển Frontend Angular. Sử dụng tốt Angular. Yêu cầu 1-2 năm làm việc với RxJS. Sử dụng tốt Selenium hoặc Cypress."
+  },
+  {
+    "task_id": "task_044",
+    "domain": "Security",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên Security. Từng làm dự án với network security. Mới làm quen linux. Mới làm quen penetration testing.",
+    "jd_text": "Tuyển Security. Yêu cầu 1-2 năm làm việc với Linux. Sử dụng tốt Penetration Testing. Yêu cầu 1-2 năm làm việc với Angular hoặc React. Nắm vững Network Security."
+  },
+  {
+    "task_id": "task_045",
+    "domain": "Database",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Database. Từng dùng mysql ở mức cơ bản. Mới làm quen sql server. Mới làm quen redis. Từng dùng postgresql ở mức cơ bản.",
+    "jd_text": "Tuyển Database. Thành thạo MySQL. Thành thạo SQL Server. Yêu cầu tối thiểu 3 năm kinh nghiệm Redis. Thành thạo PostgreSQL."
+  },
+  {
+    "task_id": "task_050",
+    "domain": "QA/Testing",
+    "gap_type": "nhóm_hoặc",
+    "cv_text": "Tôi là lập trình viên QA/Testing. Mới làm quen rest api. Có tìm hiểu ci/cd. Từng làm dự án với cypress.",
+    "jd_text": "Tuyển QA/Testing. Sử dụng tốt CI/CD. Nắm vững Cypress. Có kinh nghiệm GitHub/GitLab. Yêu cầu tối thiểu 3 năm kinh nghiệm REST API."
+  },
+  {
+    "task_id": "task_051",
+    "domain": "Frontend Angular",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Frontend Angular. Có tìm hiểu typescript. Có tìm hiểu javascript. Từng dùng rxjs ở mức cơ bản. Mới làm quen angular.",
+    "jd_text": "Tuyển Frontend Angular. Chuyên gia về TypeScript. Chuyên gia về JavaScript. Yêu cầu tối thiểu 3 năm kinh nghiệm RxJS. Thành thạo Angular."
+  },
+  {
+    "task_id": "task_052",
+    "domain": "Security",
+    "gap_type": "thiếu_skill",
+    "cv_text": "Tôi là lập trình viên Security. Có kinh nghiệm cryptography. Hơn 3 năm kinh nghiệm network security.",
+    "jd_text": "Tuyển Security. Có kinh nghiệm Python. Yêu cầu tối thiểu 3 năm kinh nghiệm Penetration Testing. Yêu cầu 1-2 năm làm việc với Linux."
+  },
+  {
+    "task_id": "task_057",
+    "domain": "Architecture",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Architecture. Mới làm quen docker. Biết cơ bản kubernetes. Biết cơ bản system design.",
+    "jd_text": "Tuyển Architecture. Chuyên gia về Docker. Thành thạo Kubernetes. Chuyên gia về System Design."
+  },
+  {
+    "task_id": "task_072",
+    "domain": "Backend Python",
+    "gap_type": "thiếu_level",
+    "cv_text": "Tôi là lập trình viên Backend Python. Từng dùng rest api ở mức cơ bản. Biết cơ bản celery. Từng dùng python ở mức cơ bản. Có tìm hiểu fastapi.",
+    "jd_text": "Tuyển Backend Python. Nắm vững REST API. Chuyên gia về Celery. Chuyên gia về Python. Nắm vững FastAPI."
+  }
+]

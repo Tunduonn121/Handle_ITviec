@@ -13,27 +13,30 @@ function App() {
 
   const { extractCv, isExtracting, extractJd, isExtractingJd, startAnalysis, isSubmitting, pollingStatus, resultData } = useGapAnalysis()
 
-  // SỬA HÀM NÀY: Vừa bóc CV (chặn màn hình), vừa bóc JD (chạy ngầm)
+  // SỬA HÀM NÀY: Dùng Promise.all để chạy song song và chờ cả 2 hoàn tất
   const handleExtract = async () => {
     if (!cvText || !jdText) {
       alert("Sếp ơi, dán đủ cả JD và CV vào nhé!")
       return
     }
-    // KÍCH HOẠT JD CHẠY NGẦM (Không dùng await để không bắt user chờ)
-    extractJd(jdText).then(data => setExtractedJdData(data)).catch(err => console.log("Lỗi bóc JD:", err));
 
-    // BÓC CV BÌNH THƯỜNG
-    const skillsFromAI = await extractCv(cvText)
-    setUserVerifiedSkills(skillsFromAI) 
-    setCurrentStep(2) 
-  }
+    try {
+      // Gọi cả 2 API cùng một lúc và chờ kết quả
+      const [jdData, cvData] = await Promise.all([
+        extractJd(jdText),
+        extractCv(cvText)
+      ]);
 
-  // XỬ LÝ KHI THAY ĐỔI LEVEL TRÊN THANH TRƯỢT
-  const handleLevelChange = (skillName, newLevel) => {
-    setUserVerifiedSkills(prev => ({
-      ...prev,
-      [skillName]: { ...prev[skillName], level: parseInt(newLevel) }
-    }))
+      // Chỉ khi CẢ 2 đều thành công thì mới cập nhật State và chuyển trang
+      setExtractedJdData(jdData);
+      setUserVerifiedSkills(cvData); 
+      setCurrentStep(2); 
+
+    } catch (error) {
+      // Nếu 1 trong 2 API bị lỗi, Promise.all sẽ nhảy vào đây
+      console.error("Lỗi khi bóc tách dữ liệu:", error);
+      alert("Có lỗi xảy ra trong quá trình AI phân tích. Vui lòng thử lại!");
+    }
   }
 
   // SỬA HÀM NÀY: Truyền cái JD đã bóc ngầm xuống
@@ -323,7 +326,7 @@ function App() {
 
         {/* DÒNG TEXT GIỮ NGUYÊN THEO CHỈ ĐẠO CỦA SẾP */}
         <h1 className="text-4xl font-bold mt-2 text-blue-500 tracking-wide drop-shadow-lg">
-          🤖 AI Đang Thiết Kế Lộ Trình...
+           Đang Thiết Kế Lộ Trình...
         </h1>
         <p className="text-slate-400 mt-4 text-lg animate-pulse">
           Vui lòng chờ trong giây lát. Hệ thống đang tìm kiếm khóa học phù hợp nhất...
@@ -441,17 +444,19 @@ function App() {
           <textarea className="w-full h-[400px] p-4 border rounded-xl outline-none bg-slate-50" value={cvText} onChange={(e) => setCvText(e.target.value)} />
           
           {/* Lớp mờ khi AI đang bóc tách */}
-          {isExtracting && (
+          {/* SỬA Ở ĐÂY: Check cả isExtracting và isExtractingJd */}
+          {(isExtracting || isExtractingJd) && (
              <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-2xl backdrop-blur-sm">
-               <div className="text-2xl font-bold text-blue-600 animate-pulse">🤖 Đang quét kỹ năng...</div>
+               <div className="text-2xl font-bold text-blue-600 animate-pulse">🤖 Đang quét dữ liệu...</div>
              </div>
           )}
         </div>
       </div>
 
       <div className="text-center mt-10">
-        <button onClick={handleExtract} disabled={isExtracting} className="bg-slate-900 hover:bg-blue-600 text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl disabled:bg-slate-400">
-          Bước 1: Trích xuất Kỹ năng từ CV 🚀
+        {/* SỬA Ở ĐÂY: Khóa nút khi 1 trong 2 thằng đang chạy */}
+        <button onClick={handleExtract} disabled={isExtracting || isExtractingJd} className="bg-slate-900 hover:bg-blue-600 text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl disabled:bg-slate-400">
+          Bước 1: Trích xuất Dữ liệu 🚀
         </button>
       </div>
     </div>

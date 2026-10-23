@@ -1,0 +1,451 @@
+{
+  "task_001": {
+    "domain": "DevOps",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển DevOps. Thành thạo CI/CD. Sử dụng tốt Terraform. Nắm vững Linux.",
+    "_llm_suggested": [
+      "ci/cd",
+      "terraform",
+      "linux"
+    ],
+    "gold_skills": ["ci/cd", "terraform", "linux"],
+    "gold_levels": {"ci/cd":3 , "terraform": 2, "linux": 2}
+  },
+  "task_002": {
+    "domain": "Cloud",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Cloud. Yêu cầu 1-2 năm làm việc với ReactJS hoặc VueJS. Nắm vững Terraform. Yêu cầu 1-2 năm làm việc với Docker. Chuyên gia về GCP.",
+    "_llm_suggested": [
+      "reactjs|vuejs",
+      "terraform",
+      "docker",
+      "gcp"
+    ],
+    "gold_skills": ["reactjs|vuejs", "terraform", "docker", "gcp"],
+    "gold_levels": {"reactjs":2, "vuejs": 2, "terraform": 2, "docker": 2, "gcp": 3}
+  },
+  "task_003": {
+    "domain": "Security",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Security. Chuyên gia về Python. Yêu cầu tối thiểu 3 năm kinh nghiệm Network Security. Nắm vững Linux. Nắm vững Cryptography.",
+    "_llm_suggested": [
+      "security",
+      "python",
+      "network security",
+      "linux",
+      "cryptography"
+    ],
+    "gold_skills": ["python", "network security", "linux", "cryptography"],
+    "gold_levels": {"python": 3, "network security": 3, "linux": 2, "cryptography": 2}
+  },
+  "task_004": {
+    "domain": "Frontend Vue",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển Frontend Vue. Nắm vững Vuex. Có kinh nghiệm JavaScript. Có kinh nghiệm Nuxt.js.",
+    "_llm_suggested": [
+      "vuejs",
+      "vuex",
+      "javascript",
+      "nuxt.js"
+    ],
+    "gold_skills": ["vuex", "javascript", "nuxt.js"],
+    "gold_levels": {"vuex": 2, "javascript": 2, "nuxt.js": 2}
+  },
+  "task_005": {
+    "domain": "Architecture",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Architecture. Chuyên gia về Docker. Có kinh nghiệm Java/Node.js/Python. Chuyên gia về Microservices.",
+    "_llm_suggested": [
+      "docker",
+      "java|nodejs|python",
+      "microservices"
+    ],
+    "gold_skills": ["docker", "java|nodejs|python", "microservices"],
+    "gold_levels": {"docker": 3, "java":3, "nodejs": 3, "python": 3, "microservices": 3}
+  },
+  "task_006": {
+    "domain": "Frontend React",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Frontend React. Nắm vững Next.js. Yêu cầu tối thiểu 3 năm kinh nghiệm ReactJS. Yêu cầu tối thiểu 3 năm kinh nghiệm JavaScript. Thành thạo Redux.",
+    "_llm_suggested": [
+      "reactjs",
+      "javascript",
+      "next.js",
+      "redux"
+    ],
+    "gold_skills": ["reactjs", "javascript", "next.js", "redux"],
+    "gold_levels": {"reactjs": 3, "javascript": 3, "next.js": 2, "redux": 3}
+  },
+  "task_007": {
+    "domain": "Data/AI",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển Data/AI. Có kinh nghiệm Python. Có kinh nghiệm TensorFlow.",
+    "_llm_suggested": [
+      "python",
+      "tensorflow"
+    ],
+    "gold_skills": ["python", "tensorflow"],
+    "gold_levels": {"python": 2, "tensorflow": 2}
+  },
+  "task_008": {
+    "domain": "Data/AI",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Data/AI. Có kinh nghiệm TensorFlow. Có kinh nghiệm Machine Learning. Sử dụng tốt Angular hoặc React.",
+    "_llm_suggested": [
+      "tensorflow",
+      "machine learning",
+      "angular|reactjs"
+    ],
+    "gold_skills": ["tensorflow", "machine learning","angular|reactjs"],
+    "gold_levels": {"tensorflow": 2, "machine learning": 2, "angular":2, "reactjs": 2}
+  },
+  "task_009": {
+    "domain": "Data/AI",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Data/AI. Chuyên gia về Deep Learning. Chuyên gia về PyTorch. Chuyên gia về Python. Nắm vững TensorFlow.",
+    "_llm_suggested": [
+      "deep learning",
+      "pytorch",
+      "python",
+      "tensorflow"
+    ],
+    "gold_skills": ["deep learning", "pytorch", "python", "tensorflow"],
+    "gold_levels": {"deep learning": 3, "pytorch": 3, "python": 3, "tensorflow": 2}
+  },
+  "task_010": {
+    "domain": "Architecture",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển Architecture. Sử dụng tốt Docker. Thành thạo Kafka.",
+    "_llm_suggested": [
+      "docker",
+      "kafka"
+    ],
+    "gold_skills": ["docker", "kafka"],
+    "gold_levels": {"docker": 2, "kafka": 3}
+  },
+  "task_011": {
+    "domain": "Backend Python",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Backend Python. Yêu cầu 1-2 năm làm việc với AWS, Azure hoặc GCP. Yêu cầu 1-2 năm làm việc với Django. Có kinh nghiệm Python. Có kinh nghiệm FastAPI.",
+    "_llm_suggested": [
+      "python",
+      "django",
+      "fastapi",
+      "aws|azure|gcp"
+    ],
+    "gold_skills": ["python", "django", "fastapi", "aws|azure|gcp"],
+    "gold_levels": {"python": 2, "django": 2, "fastapi": 2, "aws": 2, "azure": 2, "gcp": 2}
+  },
+  "task_012": {
+    "domain": "Frontend Vue",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Frontend Vue. Yêu cầu tối thiểu 3 năm kinh nghiệm Vue.js. Chuyên gia về TypeScript. Nắm vững JavaScript.",
+    "_llm_suggested": [
+      "vuejs",
+      "typescript",
+      "javascript"
+    ],
+    "gold_skills": ["vuejs", "typescript", "javascript"],
+    "gold_levels": {"vuejs": 3, "typescript": 3, "javascript": 2}
+  },
+  "task_013": {
+    "domain": "Cloud",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển Cloud. Yêu cầu 1-2 năm làm việc với Docker. Sử dụng tốt AWS.",
+    "_llm_suggested": [
+      "docker",
+      "aws"
+    ],
+    "gold_skills": ["docker", "aws"],
+    "gold_levels": {"docker": 2, "aws": 2}
+  },
+  "task_014": {
+    "domain": "Mobile",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Mobile. Chuyên gia về React Native. Có kinh nghiệm TensorFlow hoặc PyTorch. Sử dụng tốt Flutter.",
+    "_llm_suggested": [
+      "react native",
+      "tensorflow|pytorch",
+      "flutter"
+    ],
+    "gold_skills": ["react native", "tensorflow|pytorch", "flutter"],
+    "gold_levels": {"react native": 3, "tensorflow": 2, "pytorch": 2, "flutter": 2}
+  },
+  "task_016": {
+    "domain": "Database",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển Database. Nắm vững Redis. Sử dụng tốt PostgreSQL. Yêu cầu 1-2 năm làm việc với Oracle.",
+    "_llm_suggested": [
+      "redis",
+      "postgresql",
+      "oracle"
+    ],
+    "gold_skills": ["redis", "postgresql", "oracle"],
+    "gold_levels": {"redis": 2, "postgresql": 2, "oracle": 2}
+  },
+  "task_020": {
+    "domain": "Frontend Vue",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Frontend Vue. Có kinh nghiệm Selenium hoặc Cypress. Yêu cầu 1-2 năm làm việc với Vue.js. Có kinh nghiệm Nuxt.js. Nắm vững Vuex.",
+    "_llm_suggested": [
+      "vuejs",
+      "nuxt.js",
+      "vuex",
+      "selenium|cypress"
+    ],
+    "gold_skills": ["vuejs", "nuxt.js", "vuex", "selenium|cypress"],
+    "gold_levels": {"vuejs": 2, "nuxt.js": 2, "vuex": 2, "selenium": 2, "cypress": 2}
+  },
+  "task_021": {
+    "domain": "Backend Java",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Backend Java. Chuyên gia về Java. Chuyên gia về REST API. Yêu cầu tối thiểu 3 năm kinh nghiệm Redis. Chuyên gia về Microservices.",
+    "_llm_suggested": [
+      "java",
+      "rest api",
+      "redis",
+      "microservices"
+    ],
+    "gold_skills": ["java", "rest api", "redis", "microservices"],
+    "gold_levels": {"java": 3, "rest api": 3, "redis": 3, "microservices": 3}
+  },
+  "task_023": {
+    "domain": "Backend Java",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Backend Java. Sử dụng tốt Microservices. Yêu cầu 1-2 năm làm việc với Selenium hoặc Cypress. Sử dụng tốt Spring Boot. Nắm vững Hibernate.",
+    "_llm_suggested": [
+      "java",
+      "microservices",
+      "selenium|cypress",
+      "spring boot",
+      "jpa"
+    ],
+    "gold_skills": [ "microservices", "selenium", "cypress", "spring boot", "hibernate"],
+    "gold_levels": { "microservices": 2, "selenium": 2, "cypress": 2, "spring boot": 2, "hibernate": 2}
+  },
+  "task_025": {
+    "domain": "Backend Node",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển Backend Node. Yêu cầu 1-2 năm làm việc với Node.js. Yêu cầu 1-2 năm làm việc với TypeScript. Chuyên gia về MongoDB.",
+    "_llm_suggested": [
+      "nodejs",
+      "typescript",
+      "mongodb"
+    ],
+    "gold_skills": ["nodejs", "typescript", "mongodb"],
+    "gold_levels": {"nodejs": 2, "typescript": 2, "mongodb": 3}
+  },
+  "task_028": {
+    "domain": "QA/Testing",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển QA/Testing. Yêu cầu 1-2 năm làm việc với Selenium. Có kinh nghiệm REST API.",
+    "_llm_suggested": [
+      "selenium",
+      "rest api"
+    ],
+    "gold_skills": ["selenium", "rest api"],
+    "gold_levels": {"selenium": 2, "rest api": 2}
+  },
+  "task_030": {
+    "domain": "DevOps",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển DevOps. Thành thạo Jenkins. Nắm vững Linux. Thành thạo Terraform. Thành thạo Docker.",
+    "_llm_suggested": [
+      "jenkins",
+      "linux",
+      "terraform",
+      "docker"
+    ],
+    "gold_skills": ["jenkins", "linux", "terraform", "docker"],
+    "gold_levels": {"jenkins": 3, "linux": 2, "terraform": 3, "docker": 3}
+  },
+  "task_032": {
+    "domain": "Backend Node",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Backend Node. Sử dụng tốt Docker hoặc Kubernetes. Sử dụng tốt TypeScript. Yêu cầu 1-2 năm làm việc với REST API. Yêu cầu tối thiểu 3 năm kinh nghiệm GraphQL.",
+    "_llm_suggested": [
+      "docker|kubernetes",
+      "typescript",
+      "rest api",
+      "graphql"
+    ],
+    "gold_skills": ["docker|kubernetes", "typescript", "rest api", "graphql"],
+    "gold_levels": {"docker":2, "kubernetes": 2, "typescript": 2, "rest api": 2, "graphql": 3}
+  },
+  "task_033": {
+    "domain": "Backend .NET",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Backend .NET. Yêu cầu tối thiểu 3 năm kinh nghiệm Entity Framework. Yêu cầu tối thiểu 3 năm kinh nghiệm C#. Nắm vững SQL Server. Nắm vững Azure.",
+    "_llm_suggested": [
+      "c#",
+      "entity framework",
+      "sql server",
+      "azure"
+    ],
+    "gold_skills": ["c#", "entity framework", "sql server", "azure"],
+    "gold_levels": {"c#": 3, "entity framework": 3, "sql server": 2, "azure": 2}
+  },
+  "task_034": {
+    "domain": "Backend Python",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển Backend Python. Chuyên gia về Python. Thành thạo PostgreSQL. Yêu cầu tối thiểu 3 năm kinh nghiệm Celery.",
+    "_llm_suggested": [
+      "python",
+      "postgresql",
+      "celery"
+    ],
+    "gold_skills": ["python", "postgresql", "celery"],
+    "gold_levels": {"python": 3, "postgresql": 3, "celery": 3}
+  },
+  "task_037": {
+    "domain": "Frontend Angular",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển Frontend Angular. Nắm vững RxJS. Chuyên gia về TypeScript.",
+    "_llm_suggested": [
+      "angular",
+      "rxjs",
+      "typescript"
+    ],
+    "gold_skills": ["rxjs", "typescript"],
+    "gold_levels": {"rxjs": 2, "typescript": 3}
+  },
+  "task_038": {
+    "domain": "Backend .NET",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Backend .NET. Có kinh nghiệm Entity Framework. Có kinh nghiệm Docker hoặc Kubernetes. Có kinh nghiệm SQL Server.",
+    "_llm_suggested": [
+      ".net",
+      "entity framework",
+      "docker|kubernetes",
+      "sql server"
+    ],
+    "gold_skills": ["entity framework", "docker|kubernetes", "sql server"],
+    "gold_levels": {"entity framework": 2, "docker":2, "kubernetes": 2, "sql server": 2}
+  },
+  "task_039": {
+    "domain": "Cloud",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Cloud. Chuyên gia về GCP. Yêu cầu tối thiểu 3 năm kinh nghiệm Terraform. Thành thạo AWS.",
+    "_llm_suggested": [
+      "gcp",
+      "terraform",
+      "aws"
+    ],
+    "gold_skills": ["gcp", "terraform", "aws"],
+    "gold_levels": {"gcp": 3, "terraform": 3, "aws": 3}
+  },
+  "task_040": {
+    "domain": "Backend .NET",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển Backend .NET. Sử dụng tốt SQL Server. Sử dụng tốt LINQ. Nắm vững REST API.",
+    "_llm_suggested": [
+      ".net",
+      "sql server",
+      "linq",
+      "rest api"
+    ],
+    "gold_skills": ["sql server", "linq", "rest api"],
+    "gold_levels": {"sql server": 2, "linq": 2, "rest api": 2}
+  },
+  "task_041": {
+    "domain": "Frontend Angular",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Frontend Angular. Sử dụng tốt Angular. Yêu cầu 1-2 năm làm việc với RxJS. Sử dụng tốt Selenium hoặc Cypress.",
+    "_llm_suggested": [
+      "angular",
+      "rxjs",
+      "selenium|cypress"
+    ],
+    "gold_skills": ["angular", "rxjs", "selenium|cypress"],
+    "gold_levels": {"angular": 2, "rxjs": 2, "selenium":2, "cypress": 2}
+  },
+  "task_044": {
+    "domain": "Security",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển Security. Yêu cầu 1-2 năm làm việc với Linux. Sử dụng tốt Penetration Testing. Yêu cầu 1-2 năm làm việc với Angular hoặc React. Nắm vững Network Security.",
+    "_llm_suggested": [
+      "linux",
+      "penetration testing",
+      "angular|reactjs",
+      "network security"
+    ],
+    "gold_skills": ["linux", "penetration testing", "angular|reactjs", "network security"],
+    "gold_levels": {"linux": 2, "penetration testing": 2, "angular": 2, "reactjs": 2, "network security": 2}
+  },
+  "task_045": {
+    "domain": "Database",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Database. Thành thạo MySQL. Thành thạo SQL Server. Yêu cầu tối thiểu 3 năm kinh nghiệm Redis. Thành thạo PostgreSQL.",
+    "_llm_suggested": [
+      "mysql",
+      "sql server",
+      "redis",
+      "postgresql"
+    ],
+    "gold_skills": ["mysql", "sql server", "redis", "postgresql"],
+    "gold_levels": {"mysql": 3, "sql server": 3, "redis": 3, "postgresql": 3}
+  },
+  "task_050": {
+    "domain": "QA/Testing",
+    "gap_type": "nhóm_hoặc",
+    "jd_text": "Tuyển QA/Testing. Sử dụng tốt CI/CD. Nắm vững Cypress. Có kinh nghiệm GitHub/GitLab. Yêu cầu tối thiểu 3 năm kinh nghiệm REST API.",
+    "_llm_suggested": [
+      "ci/cd",
+      "cypress",
+      "git|ci/cd",
+      "rest api"
+    ],
+    "gold_skills": ["ci/cd", "cypress", "git", "rest api"],
+    "gold_levels": {"ci/cd": 2, "cypress": 2, "git": 2, "rest api": 3}
+  },
+  "task_051": {
+    "domain": "Frontend Angular",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Frontend Angular. Chuyên gia về TypeScript. Chuyên gia về JavaScript. Yêu cầu tối thiểu 3 năm kinh nghiệm RxJS. Thành thạo Angular.",
+    "_llm_suggested": [
+      "angular",
+      "typescript",
+      "javascript",
+      "rxjs"
+    ],
+    "gold_skills": ["typescript", "javascript", "rxjs", "angular"],
+    "gold_levels": {"typescript": 3, "javascript": 3, "rxjs": 3, "angular": 2}
+  },
+  "task_052": {
+    "domain": "Security",
+    "gap_type": "thiếu_skill",
+    "jd_text": "Tuyển Security. Có kinh nghiệm Python. Yêu cầu tối thiểu 3 năm kinh nghiệm Penetration Testing. Yêu cầu 1-2 năm làm việc với Linux.",
+    "_llm_suggested": [
+      "security",
+      "python",
+      "penetration testing",
+      "linux"
+    ],
+    "gold_skills": ["python", "penetration testing", "linux"],
+    "gold_levels": {"python": 2, "penetration testing": 3, "linux": 2}
+  },
+  "task_057": {
+    "domain": "Architecture",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Architecture. Chuyên gia về Docker. Thành thạo Kubernetes. Chuyên gia về System Design.",
+    "_llm_suggested": [
+      "docker",
+      "kubernetes"
+    ],
+    "gold_skills": ["docker", "kubernetes"],
+    "gold_levels": {"docker": 3, "kubernetes": 3}
+  },
+  "task_072": {
+    "domain": "Backend Python",
+    "gap_type": "thiếu_level",
+    "jd_text": "Tuyển Backend Python. Nắm vững REST API. Chuyên gia về Celery. Chuyên gia về Python. Nắm vững FastAPI.",
+    "_llm_suggested": [
+      "python",
+      "rest api",
+      "celery",
+      "fastapi"
+    ],
+    "gold_skills": ["python", "rest api", "celery", "fastapi"],
+    "gold_levels": {"python": 3, "rest api": 2, "celery": 3, "fastapi": 2}
+  }
+}

@@ -7,7 +7,8 @@ load_dotenv()
 # Cấu hình AI
 OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY")
 OLLAMA_HOST_URL = "https://ollama.com"
-MODEL_NAME = "qwen3-coder:480b-cloud"
+# MODEL_NAME = "qwen3-coder:480b-cloud"
+MODEL_NAME = "gpt-oss:20b-cloud"
 
 # Cấu hình Database
 SQL_SERVER_NAME = r"LAPTOP-3MUGN234\TUNDUONN"

@@ -1,13 +1,14 @@
 import re
 # Gọi két sắt để lấy dữ liệu chung (Đã gộp import chuẩn Clean Architecture)
 import core.state as state
-
+from concurrent.futures import ThreadPoolExecutor
 # Import các công nhân chuyên trách (AI, Toán học, Duyệt cây)
 from services.skill_extractor import extract_skills_from_jd, extract_skills_from_cv
 from services.skill_gap_calculator import compute_skill_gap
 from services.tree_searcher import dfs_tree_search
 from services.course_ranker import rank_courses_with_llm
 from services.aliases import clean_and_normalize
+import time
 
 def process_llm_logic(task_id: str, cv_text: str, jd_text: str, verified_skills: dict = None, pre_extracted_jd: dict = None):
     """
@@ -22,16 +23,16 @@ def process_llm_logic(task_id: str, cv_text: str, jd_text: str, verified_skills:
         # Mục đích: Biến văn bản thô (Text) thành Dữ liệu có cấu trúc (JSON).
         # Tối ưu: Nếu Frontend đã truyền sẵn JSON (pre_extracted) thì bỏ qua bước gọi LLM để tiết kiệm tiền/thời gian.
         # =====================================================================
-        if pre_extracted_jd:
-            jd_skills = pre_extracted_jd
-        else:
-            jd_skills = extract_skills_from_jd(jd_text)
-
-        if verified_skills:
-            cv_skills = verified_skills
-        else:
-            cv_skills = extract_skills_from_cv(cv_text)
-
+        # Chạy trích xuất JD và CV SONG SONG (2 lời gọi LLM độc lập)
+        with ThreadPoolExecutor(max_workers=2) as ex:
+            jd_future = ex.submit(
+                lambda: pre_extracted_jd if pre_extracted_jd else extract_skills_from_jd(jd_text)
+            )
+            cv_future = ex.submit(
+                lambda: verified_skills if verified_skills else extract_skills_from_cv(cv_text)
+            )
+            jd_skills = jd_future.result()
+            cv_skills = cv_future.result()
         # Chặn đứng dây chuyền nếu JD nhập vào không có kỹ năng IT nào (VD: Nhập rác)
         if not jd_skills:
             state.tasks_db[task_id] = {"status": "failed", "message": "Không thể trích xuất kỹ năng từ JD này."}
@@ -81,6 +82,7 @@ def process_llm_logic(task_id: str, cv_text: str, jd_text: str, verified_skills:
         # =====================================================================
         print(f"🌲 [TASK {task_id}] Đang lùng sục Cây Khóa Học...")
         # Lấy bản gốc của Cây Khóa học từ state
+        _t = time.time()
         candidate_courses_raw = dfs_tree_search(state.GLOBAL_COURSE_TREE, search_gap_dict)
         
         # Bộ lọc an toàn: Đảm bảo chỉ lấy các object dictionary, vứt bỏ string rác nếu có
@@ -88,18 +90,19 @@ def process_llm_logic(task_id: str, cv_text: str, jd_text: str, verified_skills:
         for c in candidate_courses_raw:
             if isinstance(c, dict):
                 candidate_courses.append(c)
-
+        print(f"retrieve took {time.time()-_t:.2f}s");
         if not candidate_courses:
             state.tasks_db[task_id] = {"status": "completed", "data": [], "message": "Không tìm thấy khóa học nào khớp với Gap."}
             return
-
+        print(f"📦 candidate pool size: {len(candidate_courses)}") 
         # =====================================================================
         # BƯỚC 4: CHẤM ĐIỂM SƯ PHẠM (LLM RANKING)
         # Mục đích: Nhờ AI đóng vai Giáo sư, duyệt rổ khóa học thô và chọn ra top lộ trình tốt nhất.
         # =====================================================================
-        print(f"🏆 [TASK {task_id}] Đang gọi Qwen xếp hạng Tính Sư Phạm...")
+        print(f"🏆 [TASK {task_id}] Đang xếp hạng ...")
+        _t = time.time()
         ranked_result = rank_courses_with_llm(candidate_courses, search_gap_dict, top_k=3)
-
+        print(f"rank took {time.time()-_t:.2f}s")
         print(f"📦 [TASK {task_id}] Đang đóng gói dữ liệu Combo và Regular...")
         combo_courses = []
         regular_courses = []
@@ -147,3 +150,4 @@ def process_llm_logic(task_id: str, cv_text: str, jd_text: str, verified_skills:
         traceback.print_exc()
         print(f"❌ [TASK {task_id}] LỖI CRASH: {str(e)}")
         state.tasks_db[task_id] = {"status": "failed", "message": f"Lỗi hệ thống: {str(e)}"}
+        
